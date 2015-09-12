@@ -58,6 +58,7 @@ public class Main implements IMainListener {
 	}
 
 	
+	@SuppressWarnings("unused")
 	private void setupTestData() {
         IBook[] book = new IBook[15];
 		IMember[] member = new IMember[6];
