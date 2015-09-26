@@ -45,7 +45,7 @@ public class LoanDAO implements ILoanDAO{
 		{
 			Calendar dueDateCal = Calendar.getInstance();
 			Date borrowDate = new Date();
-			dueDateCal.add(Calendar.DAY_OF_MONTH, 14);
+			dueDateCal.add(Calendar.DAY_OF_MONTH, loan.LOAN_PERIOD);//Might need rework.
 			Date dueDate = dueDateCal.getTime();
 			loan = iLoanHelper_.makeLoan(book, borrower, borrowDate, dueDate);
 		}

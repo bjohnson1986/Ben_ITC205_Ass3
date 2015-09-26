@@ -31,7 +31,7 @@ public class Book implements IBook{
 		{
 			throw new IllegalArgumentException("The Book's identification number cannot be less than or equal to zero.");
 		}
-		
+		//All variables are valid, construct the object.
 		if (((author != null && !author.isEmpty()) && (title != null && !title.isEmpty()) && ((callNumber != null && !callNumber.isEmpty())) && (bookId > 0)))
 		{
 			author_ = author;

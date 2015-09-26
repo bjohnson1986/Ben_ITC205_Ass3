@@ -3,9 +3,19 @@ package library.daos;
 import java.util.List;
 
 import library.interfaces.daos.IMemberDAO;
+import library.interfaces.daos.IMemberHelper;
 import library.interfaces.entities.IMember;
 
 public class MemberDAO implements IMemberDAO{
+	
+	public MemberDAO(IMemberHelper iMemberHelper)
+	throws IllegalArgumentException
+	{
+		if(iMemberHelper == null)
+		{
+			throw new IllegalArgumentException("Error, IMemberHelper cannot be null.");
+		}
+	}
 
 	@Override
 	public IMember addMember(String firstName, String lastName,

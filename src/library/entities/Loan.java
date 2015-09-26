@@ -40,6 +40,7 @@ public class Loan implements ILoan{
 		{
 			throw new IllegalArgumentException("Error, due date must be equal to, or after borrow date.");
 		}
+		//All variables are valid, construct the object.
 		if((book != null) && (borrower != null) && (borrowDate != null) && (dueDate != null) && (dueDate.compareTo(borrowDate)>0))
 		{
 			book_ = book;

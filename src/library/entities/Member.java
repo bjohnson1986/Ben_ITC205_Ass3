@@ -8,100 +8,203 @@ import library.interfaces.entities.IMember;
 
 public class Member implements IMember{
 
-	@Override
+	private String firstName_;
+	private String lastName_;
+	private String contactPhone_;
+	private String emailAddress_;
+	private int id_;
+	private EMemberState eMemberState_;
+	private List<ILoan> loanList_;
+	private float finesOwing_;
+	private int currentLoans_;
+	
+	public Member(String firstName, String lastName, String contactPhone, String emailAddress, int id)
+	throws IllegalArgumentException
+	{
+		if(firstName == null)
+		{
+			throw new RuntimeException("Error, first name cannot be null.");
+		}
+		if(firstName == "")
+		{
+			throw new RuntimeException("Error, first name cannot be blank.");
+		}
+		if(lastName == null)
+		{
+			throw new RuntimeException("Error, last name cannot be null.");
+		}
+		if(lastName == "")
+		{
+			throw new RuntimeException("Error, last name cannot be blank.");
+		}
+		if(contactPhone == null)
+		{
+			throw new RuntimeException("Error, phone number cannot be null.");
+		}
+		if(contactPhone == "")
+		{
+			throw new RuntimeException("Error, phone number cannot be blank.");
+		}
+		if(emailAddress == null)
+		{
+			throw new RuntimeException("Error, email address cannot be null.");
+		}
+		if(emailAddress == "")
+		{
+			throw new RuntimeException("Error, email address cannot be blank.");
+		}
+		if(id < 0)//Specification stipulates "less than or equal to zero" - but why?
+		{
+			throw new RuntimeException("Error, member identification cannot be less than zero.");			
+		}
+		//All variables are valid, construct the object.
+		if(((firstName != null) && (firstName != "")) && ((lastName != null) && (lastName != "")) && ((contactPhone != null) && (contactPhone != "") && ((emailAddress != null) && (emailAddress != "")) && (id >= 0)))
+		{
+			firstName_ = firstName;
+			lastName_ = lastName;
+			contactPhone_ = contactPhone;
+			emailAddress_ = emailAddress;
+			id_ = id;
+		}
+	}
+	
 	public boolean hasOverDueLoans() {
-		// TODO Auto-generated method stub
-		return false;
+		boolean isOverdue = false;
+		for(ILoan i : loanList_)
+		{
+			if(i.isOverDue())
+			{
+				isOverdue = true;
+			}
+		}
+		return isOverdue;
 	}
 
-	@Override
 	public boolean hasReachedLoanLimit() {
-		// TODO Auto-generated method stub
-		return false;
+		if(currentLoans_ == LOAN_LIMIT)
+		{
+			return true;
+		}
+		else{
+			return false;
+		}
 	}
 
-	@Override
 	public boolean hasFinesPayable() {
-		// TODO Auto-generated method stub
-		return false;
+		if(finesOwing_ > 0)
+		{
+			return true;
+		}
+		else{
+			return false;
+		}
 	}
 
-	@Override
 	public boolean hasReachedFineLimit() {
-		// TODO Auto-generated method stub
-		return false;
+		if(finesOwing_ >= FINE_LIMIT)
+		{
+			return true;
+		}
+		else{
+			return false;
+		}
 	}
 
-	@Override
 	public float getFineAmount() {
-		// TODO Auto-generated method stub
-		return 0;
+		return finesOwing_;
 	}
 
-	@Override
 	public void addFine(float fine) {
-		// TODO Auto-generated method stub
-		
+	if(fine >= 0)
+	{
+		finesOwing_ += fine;		
+	}
+	else{
+		throw new IllegalArgumentException("Error, fines must be non-negative amounts.");
+	}	
 	}
 
-	@Override
 	public void payFine(float payment) {
-		// TODO Auto-generated method stub
+		if((payment >= 0) && (payment <= finesOwing_))
+		{
+			finesOwing_ = finesOwing_ - payment;
+		}
+		if(payment < 0)
+		{
+			throw new IllegalArgumentException("Error, payment must be a non-negative amount.");
+		}
+		if(payment > finesOwing_)
+		{
+			throw new IllegalArgumentException("Error, payment cannot be more than due amount.");			
+		}
 		
 	}
 
-	@Override
+	@SuppressWarnings("static-access")
 	public void addLoan(ILoan loan) {
-		// TODO Auto-generated method stub
-		
+		if(loan == null)
+		{
+			throw new IllegalArgumentException("Error, loan cannot be null.");
+		}
+		if(eMemberState_ == eMemberState_.BORROWING_DISALLOWED){
+			throw new IllegalArgumentException("Error, member cannot borrow at this time.");
+		}
+		if((loan != null) && (eMemberState_ != eMemberState_.BORROWING_DISALLOWED))
+		{
+			loanList_.add(loan);
+		}
 	}
 
-	@Override
 	public List<ILoan> getLoans() {
-		// TODO Auto-generated method stub
-		return null;
+		return loanList_;		
 	}
 
-	@Override
 	public void removeLoan(ILoan loan) {
-		// TODO Auto-generated method stub
 		
+		boolean isFound = false;
+		
+		for(ILoan i : loanList_)
+		{
+			if(i == loan)
+			{
+				isFound = true;
+			}
+		}
+		if(loan == null)
+		{
+			throw new IllegalArgumentException("Error, loan cannot be null.");
+		}
+		if(!isFound){
+			throw new IllegalArgumentException("Error, loan does not exist.");
+		}
+		if((loan != null) && (isFound))
+		{
+			loanList_.remove(loan);
+		}
 	}
 
-	@Override
 	public EMemberState getState() {
-		// TODO Auto-generated method stub
-		return null;
+		return eMemberState_;
 	}
 
-	@Override
 	public String getFirstName() {
-		// TODO Auto-generated method stub
-		return null;
+		return firstName_;
 	}
 
-	@Override
 	public String getLastName() {
-		// TODO Auto-generated method stub
-		return null;
+		return lastName_;
 	}
 
-	@Override
 	public String getContactPhone() {
-		// TODO Auto-generated method stub
-		return null;
+		return contactPhone_;
 	}
 
-	@Override
 	public String getEmailAddress() {
-		// TODO Auto-generated method stub
-		return null;
+		return emailAddress_;
 	}
 
-	@Override
 	public int getID() {
-		// TODO Auto-generated method stub
-		return 0;
+		return id_;
 	}
 
 }
