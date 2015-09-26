@@ -5,7 +5,7 @@ import java.util.Date;
 public interface ILoan {
 	
 	public static final int LOAN_PERIOD = 14;
-	
+	public boolean isCurrent();
 	
 	public void commit(int id);
 	

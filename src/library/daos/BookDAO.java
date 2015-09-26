@@ -28,14 +28,12 @@ public class BookDAO implements IBookDAO{
 		}
 	}
 
-	@Override
 	public IBook addBook(String author, String title, String callNo) {
 		IBook book = iBookHelper_.makeBook(author, title, callNo, nextBookId_);
 		nextBookId_ ++;
 		return book;
 	}
 
-	@Override
 	public IBook getBookByID(int id) {
 		try
 		{
@@ -48,12 +46,10 @@ public class BookDAO implements IBookDAO{
 		}
 	}
 
-	@Override
 	public List<IBook> listBooks() {
 		return bookList_;
 	}
 
-	@Override
 	public List<IBook> findBooksByAuthor(String author) {
 		ArrayList<IBook> authorMatchList = new ArrayList<IBook>();
 		//Loop over book list, books that have a matching author are added to the match list.
@@ -67,7 +63,6 @@ public class BookDAO implements IBookDAO{
 		return authorMatchList;
 	}
 
-	@Override
 	public List<IBook> findBooksByTitle(String title) {
 		ArrayList<IBook> titleMatchList = new ArrayList<IBook>();
 		//Loop over book list, books that have a matching title are added to the match list.
@@ -81,7 +76,6 @@ public class BookDAO implements IBookDAO{
 		return titleMatchList;
 	}
 
-	@Override
 	public List<IBook> findBooksByAuthorTitle(String author, String title) {
 		ArrayList<IBook> authorAndTitleMatchList = new ArrayList<IBook>();
 		//Loop over book list, books that have a matching author and title are added to the match list.
