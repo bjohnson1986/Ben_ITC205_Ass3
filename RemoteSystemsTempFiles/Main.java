@@ -34,7 +34,7 @@ public class Main implements IMainListener {
 		printer = new Printer();
 		display = new Display();
 		
-		//setupTestData();
+		setupTestData();
 	}
 
 
@@ -58,7 +58,7 @@ public class Main implements IMainListener {
 	}
 
 	
-	@SuppressWarnings("unused")
+	//@SuppressWarnings("unused")
 	private void setupTestData() {
         IBook book[] = new IBook[15];
 		IMember member[] = new IMember[6];
