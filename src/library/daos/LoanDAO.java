@@ -1,6 +1,7 @@
 package library.daos;
 
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 
@@ -31,6 +32,7 @@ public class LoanDAO implements ILoanDAO{
 		}
 	}
 	public ILoan createLoan(IMember borrower, IBook book) {
+		ILoan loan = null;
 		if(borrower == null)
 		{
 			throw new IllegalArgumentException("Error, borrower cannot be null.");
@@ -41,15 +43,19 @@ public class LoanDAO implements ILoanDAO{
 		}
 		if((borrower != null) && (book != null))
 		{
-			//ILoan loan = iLoanHelper_.makeLoan(book, borrower); - How do I know the borrowDate and dueDate
-			//return loan;
+			Calendar dueDateCal = Calendar.getInstance();
+			Date borrowDate = new Date();
+			dueDateCal.add(Calendar.DAY_OF_MONTH, 14);
+			Date dueDate = dueDateCal.getTime();
+			loan = iLoanHelper_.makeLoan(book, borrower, borrowDate, dueDate);
 		}
+		return loan;
 	}
 
 	@Override
 	public void commitLoan(ILoan loan) {
-		//Assigns the loan a unique Id
-		//Stores the loan
+		loan.commit(nextLoanId_);
+		loanList_.add(loan);
 		nextLoanId_ ++;
 	}
 
@@ -67,23 +73,8 @@ public class LoanDAO implements ILoanDAO{
 	}
 
 	@Override
-	public ILoan getLoanByBook(IBook book) {
-//		ArrayList<ILoan> loanMatchesBook = new ArrayList<ILoan>();
-//		//Loop over loan list, if a loan is associated with the book then add to the match list.
-//		for (ILoan loan : loanList_)
-//		{
-//			if (book.getAuthor() == author)
-//			{
-//				authorMatchList.add(book);
-//			}
-//		}
-//		return authorMatchList;
-	}
-
-	@Override
 	public List<ILoan> listLoans() {
-		// TODO Auto-generated method stub
-		return null;
+		return loanList_;
 	}
 
 	public List<ILoan> findLoansByBorrower(IMember borrower) {
@@ -100,13 +91,18 @@ public class LoanDAO implements ILoanDAO{
 	}
 
 	public List<ILoan> findLoansByBookTitle(String title) {
-//		ArrayList<ILoan> loanMatchesBookTitle = new ArrayList<ILoan>();
-//		//Loop over loan list, if a loan is associated with the book title, then add to the match list.
-//		for (ILoan loan : loanList_)
-//		{
-//			//Verify Book Title
-//		}
-//		return loanMatchesBookTitle;
+		ArrayList<ILoan> loanMatchesBookTitle = new ArrayList<ILoan>();
+		//Loop over loan list, if a loan is associated with the book title, then add to the match list.
+		for (ILoan loan : loanList_)
+		{
+			IBook book = loan.getBook();
+			String bookTitle = book.getTitle();
+			if(bookTitle == title)
+			{
+				loanMatchesBookTitle.add(loan);
+			}
+		}
+		return loanMatchesBookTitle;
 	}
 
 	@Override

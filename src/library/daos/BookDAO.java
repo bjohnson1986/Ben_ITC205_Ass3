@@ -30,6 +30,7 @@ public class BookDAO implements IBookDAO{
 
 	public IBook addBook(String author, String title, String callNo) {
 		IBook book = iBookHelper_.makeBook(author, title, callNo, nextBookId_);
+		bookList_.add(book);
 		nextBookId_ ++;
 		return book;
 	}
