@@ -31,6 +31,7 @@ public class LoanDAO implements ILoanDAO{
 			nextLoanId_ = 0;
 		}
 	}
+	@SuppressWarnings("static-access")
 	public ILoan createLoan(IMember borrower, IBook book) {
 		ILoan loan = null;
 		if(borrower == null)
