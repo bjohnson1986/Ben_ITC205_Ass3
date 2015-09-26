@@ -1,5 +1,6 @@
 package library.daos;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import library.interfaces.daos.IBookDAO;
@@ -9,7 +10,7 @@ import library.interfaces.entities.IBook;
 public class BookDAO implements IBookDAO{
 	private IBookHelper iBookHelper_;
 	private List<IBook> bookList_;
-	private int nextBookId_ = 0;
+	private int nextBookId_;
 	
 	private BookDAO(IBookHelper iBookHelper)
 	throws IllegalArgumentException
@@ -21,12 +22,16 @@ public class BookDAO implements IBookDAO{
 		else
 		{
 			iBookHelper_ = iBookHelper;
+			bookList_ = new ArrayList<IBook>();
+			//Start unique identification count.
+			nextBookId_ = 0;
 		}
 	}
 
 	@Override
 	public IBook addBook(String author, String title, String callNo) {
 		IBook book = iBookHelper_.makeBook(author, title, callNo, nextBookId_);
+		nextBookId_ ++;
 		return book;
 	}
 
@@ -34,9 +39,11 @@ public class BookDAO implements IBookDAO{
 	public IBook getBookByID(int id) {
 		try
 		{
+			//Book exists
 			return bookList_.get(id);
 		}
 		catch (Exception e){
+			//Book does not exist
 			return null;
 		}
 	}
@@ -48,20 +55,44 @@ public class BookDAO implements IBookDAO{
 
 	@Override
 	public List<IBook> findBooksByAuthor(String author) {
-		// TODO Auto-generated method stub
-		return null;
+		ArrayList<IBook> authorMatchList = new ArrayList<IBook>();
+		//Loop over book list, books that have a matching author are added to the match list.
+		for (IBook book : bookList_)
+		{
+			if (book.getAuthor() == author)
+			{
+				authorMatchList.add(book);
+			}
+		}
+		return authorMatchList;
 	}
 
 	@Override
 	public List<IBook> findBooksByTitle(String title) {
-		// TODO Auto-generated method stub
-		return null;
+		ArrayList<IBook> titleMatchList = new ArrayList<IBook>();
+		//Loop over book list, books that have a matching title are added to the match list.
+		for (IBook book : bookList_)
+		{
+			if (book.getTitle() == title)
+			{
+				titleMatchList.add(book);
+			}
+		}
+		return titleMatchList;
 	}
 
 	@Override
 	public List<IBook> findBooksByAuthorTitle(String author, String title) {
-		// TODO Auto-generated method stub
-		return null;
+		ArrayList<IBook> authorAndTitleMatchList = new ArrayList<IBook>();
+		//Loop over book list, books that have a matching author and title are added to the match list.
+		for (IBook book : bookList_)
+		{
+			if ((book.getTitle() == title) && (book.getAuthor() == author))
+			{
+				authorAndTitleMatchList.add(book);
+			}
+		}
+		return authorAndTitleMatchList;
 	}
 
 }

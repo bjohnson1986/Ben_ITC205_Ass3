@@ -45,14 +45,30 @@ public class Book implements IBook{
 	}
 	
 	
+	@SuppressWarnings("static-access")
 	public void borrow(ILoan loan) {
-		// TODO Auto-generated method stub
+		if (eBookState_ == eBookState_.AVAILABLE)
+		{
+			//Need to associate the loan to the book when the other entities are completed.
+			//Will need to pass arguments to ILoan's constructor.
+			eBookState_ = eBookState_.ON_LOAN;
+		}
+		else
+		{
+			throw new RuntimeException("Cannot associate a new loan with a book that is not available.");
+		}
 		
 	}
 
+	@SuppressWarnings("static-access")
 	public ILoan getLoan() {
-		// TODO Auto-generated method stub
-		return null;
+		ILoan loan = null;
+		if (eBookState_ == eBookState_.ON_LOAN)
+		{
+			//Need to find the loan associated with the book when the other entities are completed.
+			//Will need to pass arguments to ILoan's getBook method.
+		}
+		return loan;
 	}
 
 	@SuppressWarnings("static-access")
