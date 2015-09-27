@@ -24,7 +24,7 @@ public class BookDAO implements IBookDAO{
 			iBookHelper_ = iBookHelper;
 			bookList_ = new ArrayList<IBook>();
 			//Start unique identification count.
-			nextBookId_ = 0;
+			nextBookId_ = 1;
 		}
 	}
 

@@ -10,6 +10,7 @@ public class Book implements IBook{
 	private String callNumber_;
 	private int bookId_;
 	private EBookState eBookState_;
+	private ILoan associatedLoan_;
 	
 	@SuppressWarnings("static-access")
 	public Book(String author, String title, String callNumber, int bookId)
@@ -49,8 +50,7 @@ public class Book implements IBook{
 	public void borrow(ILoan loan) {
 		if (eBookState_ == eBookState_.AVAILABLE)
 		{
-			//Need to associate the loan to the book when the other entities are completed.
-			//Will need to pass arguments to ILoan's constructor.
+			associatedLoan_ = loan;
 			eBookState_ = eBookState_.ON_LOAN;
 		}
 		else
@@ -65,8 +65,7 @@ public class Book implements IBook{
 		ILoan loan = null;
 		if (eBookState_ == eBookState_.ON_LOAN)
 		{
-			//Need to find the loan associated with the book when the other entities are completed.
-			//Will need to pass arguments to ILoan's getBook method.
+			loan = associatedLoan_;
 		}
 		return loan;
 	}

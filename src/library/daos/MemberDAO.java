@@ -22,7 +22,7 @@ public class MemberDAO implements IMemberDAO{
 		}
 		else{
 			iMemberHelper_ = iMemberHelper;
-			nextMemberId_ = 0;
+			nextMemberId_ = 1;
 		}
 	}
 

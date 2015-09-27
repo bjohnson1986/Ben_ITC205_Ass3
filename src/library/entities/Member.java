@@ -53,9 +53,9 @@ public class Member implements IMember{
 		{
 			throw new RuntimeException("Error, email address cannot be blank.");
 		}
-		if(id < 0)//Specification stipulates "less than or equal to zero" - but why?
+		if(id <= 0)
 		{
-			throw new RuntimeException("Error, member identification cannot be less than zero.");			
+			throw new RuntimeException("Error, member identification cannot be equal to, or, less than zero.");			
 		}
 		//All variables are valid, construct the object.
 		if(((firstName != null) && (firstName != "")) && ((lastName != null) && (lastName != "")) && ((contactPhone != null) && (contactPhone != "") && ((emailAddress != null) && (emailAddress != "")) && (id >= 0)))
