@@ -16,7 +16,6 @@ public class Member implements IMember{
 	private EMemberState eMemberState_;
 	private List<ILoan> loanList_;
 	private float finesOwing_;
-	private int currentLoans_;
 	
 	public Member(String firstName, String lastName, String contactPhone, String emailAddress, int id)
 	throws IllegalArgumentException
@@ -81,7 +80,7 @@ public class Member implements IMember{
 	}
 
 	public boolean hasReachedLoanLimit() {
-		if(currentLoans_ == LOAN_LIMIT)
+		if(loanList_.size() == LOAN_LIMIT)
 		{
 			return true;
 		}
