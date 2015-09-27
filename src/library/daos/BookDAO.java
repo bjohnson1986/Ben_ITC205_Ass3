@@ -36,13 +36,16 @@ public class BookDAO implements IBookDAO{
 	}
 
 	public IBook getBookByID(int id) {
+		System.out.println("test");		
 		try
 		{
 			//Book exists
-			return bookList_.get(id);
+			System.out.println("Book exists");
+			return bookList_.get(id -1);
 		}
 		catch (Exception e){
 			//Book does not exist
+			System.out.println("Book does not exist");
 			return null;
 		}
 	}

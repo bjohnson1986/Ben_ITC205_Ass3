@@ -5,6 +5,7 @@ import java.util.List;
 
 import library.daos.BookHelper;
 import library.daos.BookDAO;
+import library.entities.Book;
 import library.interfaces.entities.IBook;
 import static org.junit.Assert.*;
 
@@ -21,18 +22,21 @@ import org.junit.Test;
 public class BookDAOTest {
 	
 	private BookHelper bookHelper_ = Mockito.mock(BookHelper.class);
-	private BookDAO bookDao_ = Mockito.mock(BookDAO.class);
+	private BookDAO bookDao_= new BookDAO(bookHelper_);
+	private IBook book_;
 	private List<IBook> runningBookList_;
 	private int bookId_;
 	
-	public BookDAOTest(){
-		bookId_ = 1;
-	}
 
 	@Before
 	public void setUp() throws Exception {	
-		BookHelper bookHelper = Mockito.mock(BookHelper.class);
-		when(bookHelper.makeBook(anyString(), anyString(), anyString(), anyInt())).thenReturn(new BookStub("Author", "Title", "CallId", ++bookId_));
+		bookId_ = 1;
+		BookDAO bookDao_ =  new BookDAO(bookHelper_);
+		bookDao_.addBook("Author0", "BookTitle0", "BookCallNumber0");
+		bookDao_.addBook("Author1", "BookTitle1", "BookCallNumber1");
+		bookDao_.addBook("Author0", "BookTitle2", "BookCallNumber2");
+		when(bookHelper_.makeBook(anyString(), anyString(), anyString(), anyInt())).thenReturn(new Book("Author", "Title", "CallId", ++bookId_));
+		Book book_ = new Book("Author", "Title", "CallId", 1);
 	}
 
 	@After
@@ -61,15 +65,13 @@ public class BookDAOTest {
 		assertEquals(bookDao.listBooks().size(), 3);
 	}
 
-	@SuppressWarnings("unused")
 	@Test
 	public final void testGetBookByID() {
 		bookId_ = 1;
-		BookDAO bookDao =  new BookDAO(bookHelper_);
-		bookDao.addBook("Author0", "BookTitle0", "BookCallNumber0");
-		bookDao.addBook("Author1", "BookTitle1", "BookCallNumber1");
-		bookDao.addBook("Author0", "BookTitle2", "BookCallNumber2");
-		IBook book = bookDao.getBookByID(1);
+		bookDao_.addBook("Author0", "BookTitle0", "BookCallNumber0");
+		IBook book_ = bookDao_.getBookByID(1);
+		String author = book_.getAuthor();
+		System.out.println(author);
 	}
 
 	@Test
@@ -77,14 +79,9 @@ public class BookDAOTest {
 		bookId_ = 1;
 		BookDAO bookDao =  new BookDAO(bookHelper_);
 		
-		IBook book0 = bookDao.addBook("Author0", "BookTitle0", "BookCallNumber0");
-		runningBookList_.add(book0);
-		IBook book1 = bookDao.addBook("Author1", "BookTitle1", "BookCallNumber1");
-		runningBookList_.add(book1);
-		IBook book2 = bookDao.addBook("Author0", "BookTitle2", "BookCallNumber2");
-		runningBookList_.add(book2);
-		List <IBook> bookList = bookDao_.listBooks();
-		assertTrue(bookList == runningBookList_);
+		bookDao.addBook("Author0", "BookTitle0", "BookCallNumber0");
+		bookDao.addBook("Author1", "BookTitle1", "BookCallNumber1");
+		assertEquals(bookDao.listBooks().size(), 2);
 	}
 
 	@Test
