@@ -12,7 +12,7 @@ public class BookDAO implements IBookDAO{
 	private List<IBook> bookList_;
 	private int nextBookId_;
 	
-	private BookDAO(IBookHelper iBookHelper)
+	public BookDAO(IBookHelper iBookHelper)
 	throws IllegalArgumentException
 	{
 		if(iBookHelper == null)

@@ -7,9 +7,20 @@ import library.interfaces.entities.ILoan;
 
 public class BookStub implements IBook{
 
+	private String author_;
+	private String title_;
+	private String callNumber_;
+	private int bookId_;
+	private EBookState eBookState_;
+	
+	@SuppressWarnings("static-access")
 	public BookStub(String author, String title, String callNumber, int bookId)
 	{
-		
+		author_ = author;
+		title_ = title;
+		callNumber_ = callNumber;
+		bookId_ = bookId;
+		eBookState_ = eBookState_.AVAILABLE;
 	}
 	
 	@Override
