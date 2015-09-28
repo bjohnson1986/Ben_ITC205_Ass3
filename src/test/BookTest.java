@@ -1,12 +1,14 @@
 package test;
 
 import library.entities.Book;
+import library.entities.Loan;
 import library.interfaces.entities.EBookState;
 import static org.junit.Assert.*;
 
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.mockito.Mockito;
 
 public class BookTest {
 
@@ -81,7 +83,7 @@ public class BookTest {
 	@SuppressWarnings("static-access")
 	@Test
 	public void testBorrowAvailable() {
-		LoanStub loan = new LoanStub();
+		Loan loan = Mockito.mock(Loan.class);
 		Book book = new Book("test", "test", "test", 100);
 		assertTrue(book.getState() == eBookState_.AVAILABLE);//Verify book's status is available
 		book.borrow(loan);//Borrow the book
@@ -91,8 +93,8 @@ public class BookTest {
 	//Attempt loan for book ON_LOAN
 	@Test(expected=RuntimeException.class)
 	public void testBorrowAlreadyOnLoan() {
-		LoanStub existingLoan = new LoanStub();
-		LoanStub newLoan = new LoanStub();
+		Loan existingLoan = Mockito.mock(Loan.class);
+		Loan newLoan = Mockito.mock(Loan.class);
 		Book book = new Book("test", "test", "test", 11);
 		book.borrow(existingLoan);//Borrow the book
 		book.borrow(newLoan);//Attempt new loan for same book
@@ -100,8 +102,8 @@ public class BookTest {
 	
 	//Attempt loan for LOST book
 	@Test(expected=RuntimeException.class)
-	public void testBorrowLostBook() {	
-		LoanStub loan = new LoanStub();
+	public void testBorrowLostBook() {
+		Loan loan = Mockito.mock(Loan.class);
 	    Book book = new Book("test", "test", "test", 13);
 	    book.lose();//Book is lost
 	    book.borrow(loan);//Attempt new loan for same book
@@ -109,9 +111,9 @@ public class BookTest {
 	
 	//Attempt loan for DAMAGED book
 	@Test(expected=RuntimeException.class)
-	public void testBorrowDamagedBook() {	
-		LoanStub oldLoan = new LoanStub();
-		LoanStub newLoan = new LoanStub();
+	public void testBorrowDamagedBook() {
+		Loan oldLoan = Mockito.mock(Loan.class);
+		Loan newLoan = Mockito.mock(Loan.class);
 	    Book book = new Book("test", "test", "test", 14);
 	    book.borrow(oldLoan);//Borrow the book
 	    book.returnBook(true);//Return damaged
@@ -121,7 +123,7 @@ public class BookTest {
 	//Attempt loan for DISPOSED book
 	@Test(expected=RuntimeException.class)
 	public void testBorrowDisposedBook() {	
-		LoanStub loan = new LoanStub();
+		Loan loan = Mockito.mock(Loan.class);
 	    Book book = new Book("test", "test", "test", 15);
 	    book.dispose();
 	    book.borrow(loan); 
@@ -130,7 +132,7 @@ public class BookTest {
 	//Check if book returns the associated loan
 	@Test
 	public void testGetLoanWhenBookOnLoan() {	
-		LoanStub loan = new LoanStub();
+		Loan loan = Mockito.mock(Loan.class);
 	    Book book = new Book("test", "test", "test", 16);
 	    book.borrow(loan); 
 	    assertEquals("", loan, book.getLoan());//Verify loan association
@@ -146,7 +148,7 @@ public class BookTest {
 	//Check if book returns a null loan when it has been borrowed and returned without damage
 	@Test
 	public void testGetNullLoanBorrowedReturned() {	
-		LoanStub loan = new LoanStub();
+		Loan loan = Mockito.mock(Loan.class);
 		Book book = new Book("test", "test", "test", 18);
 	    book.borrow(loan);//Borrow the book
 	    book.returnBook(false);//Return without damage
@@ -156,7 +158,7 @@ public class BookTest {
 	//Check if book returns a null loan when it has been borrowed and returned damaged
 	@Test
 	public void testGetNullLoanBorrowedReturnedDamaged() {	
-		LoanStub loan = new LoanStub();
+		Loan loan = Mockito.mock(Loan.class);
 		Book book = new Book("test", "test", "test", 19);
 	    book.borrow(loan);//Borrow the book
 	    book.returnBook(true);//Return with damage
@@ -167,7 +169,7 @@ public class BookTest {
 	@SuppressWarnings("static-access")
 	@Test
 	public void testReturnOnLoanBookWithoutDamage() {	
-		LoanStub loan = new LoanStub();
+		Loan loan = Mockito.mock(Loan.class);
 	    Book book = new Book("test", "test", "test", 101);
 	    book.borrow(loan);
 		assertTrue(book.getState() == eBookState_.ON_LOAN);//Verify book's status is on loan	    
@@ -179,7 +181,7 @@ public class BookTest {
 	@SuppressWarnings("static-access")
 	@Test
 	public void testReturnOnLoanBookDamaged() {	
-		LoanStub loan = new LoanStub();
+		Loan loan = Mockito.mock(Loan.class);
 	    Book book = new Book("test", "test", "test", 102);
 	    book.borrow(loan);
 		assertTrue(book.getState() == eBookState_.ON_LOAN);//Verify book's status is on loan	    
@@ -220,7 +222,7 @@ public class BookTest {
 	//Attempt return DAMAGED book with damage
 	@Test(expected=RuntimeException.class)
 	public void testReturnDamagedBookWithDamaged() {	
-		LoanStub loan = new LoanStub();
+		Loan loan = Mockito.mock(Loan.class);
 		Book book = new Book("test", "test", "test", 24);
 	    book.borrow(loan);//Borrow Book
 	    book.returnBook(true); //Return with damage
@@ -230,7 +232,7 @@ public class BookTest {
 	//Attempt return DAMAGED book without damage
 	@Test(expected=RuntimeException.class)
 	public void testReturnDamagedBookWithoutDamaged() {	
-		LoanStub loan = new LoanStub();
+		Loan loan = Mockito.mock(Loan.class);
 		Book book = new Book("test", "test", "test", 25);
 	    book.borrow(loan);//Borrow Book
 	    book.returnBook(false); //Return without damage
@@ -241,7 +243,7 @@ public class BookTest {
 	@SuppressWarnings("static-access")
 	@Test
 	public void testLoseBook() {	
-		LoanStub loan = new LoanStub();
+		Loan loan = Mockito.mock(Loan.class);
 		Book book = new Book("test", "test", "test", 26);
 		assertTrue(book.getState() == eBookState_.AVAILABLE);//Verify book's status is available
 	    book.borrow(loan);//Borrow Book
@@ -261,7 +263,7 @@ public class BookTest {
 	@SuppressWarnings("static-access")
 	@Test(expected=RuntimeException.class)
 	public void testLoseBookLost() {
-		LoanStub loan = new LoanStub();
+		Loan loan = Mockito.mock(Loan.class);
 		Book book = new Book("test", "test", "test", 28);
 		assertTrue(book.getState() == eBookState_.AVAILABLE);//Verify book's status is available
 	    book.borrow(loan);//Borrow Book
@@ -275,7 +277,7 @@ public class BookTest {
 	@SuppressWarnings("static-access")
 	@Test(expected=RuntimeException.class)
 	public void testLoseBookDamaged() {
-		LoanStub loan = new LoanStub();
+		Loan loan = Mockito.mock(Loan.class);
 		Book book = new Book("test", "test", "test", 29);
 		assertTrue(book.getState() == eBookState_.AVAILABLE);//Verify book's status is available
 	    book.borrow(loan);//Borrow Book
@@ -289,7 +291,7 @@ public class BookTest {
 	@SuppressWarnings("static-access")
 	@Test(expected=RuntimeException.class)
 	public void testLoseBookDisposed() {
-		LoanStub loan = new LoanStub();
+		Loan loan = Mockito.mock(Loan.class);
 		Book book = new Book("test", "test", "test", 30);
 		assertTrue(book.getState() == eBookState_.AVAILABLE);//Verify book's status is available
 	    book.borrow(loan);//Borrow Book
@@ -303,7 +305,7 @@ public class BookTest {
 	//Repair damaged book
 	@SuppressWarnings("static-access")
 	public void testRepairDamaged() {
-		LoanStub loan = new LoanStub();
+		Loan loan = Mockito.mock(Loan.class);
 		Book book = new Book("test", "test", "test", 31);
 		assertTrue(book.getState() == eBookState_.AVAILABLE);//Verify book's status is available
 	    book.borrow(loan);//Borrow Book
@@ -325,7 +327,7 @@ public class BookTest {
 	@SuppressWarnings("static-access")
 	@Test(expected=RuntimeException.class)
 	public void testRepairOnLoan() {
-		LoanStub loan = new LoanStub();
+		Loan loan = Mockito.mock(Loan.class);
 		Book book = new Book("test", "test", "test", 33);
 		assertTrue(book.getState() == eBookState_.AVAILABLE);//Verify book's status is available
 	    book.borrow(loan);//Borrow Book
@@ -337,7 +339,7 @@ public class BookTest {
 	@SuppressWarnings("static-access")
 	@Test(expected=RuntimeException.class)
 	public void testRepairLost() {
-		LoanStub loan = new LoanStub();
+		Loan loan = Mockito.mock(Loan.class);
 		Book book = new Book("test", "test", "test", 34);
 		assertTrue(book.getState() == eBookState_.AVAILABLE);//Verify book's status is available
 	    book.borrow(loan);//Borrow Book
@@ -371,7 +373,7 @@ public class BookTest {
 	@SuppressWarnings("static-access")
 	@Test
 	public void testDisposeDamaged() {
-		LoanStub loan = new LoanStub();
+		Loan loan = Mockito.mock(Loan.class);
 		Book book = new Book("test", "test", "test", 37);
 		assertTrue(book.getState() == eBookState_.AVAILABLE);//Verify book's status is available
 	    book.borrow(loan);//Borrow Book
@@ -386,7 +388,7 @@ public class BookTest {
 	@SuppressWarnings("static-access")
 	@Test
 	public void testDisposeLost() {
-		LoanStub loan = new LoanStub();
+		Loan loan = Mockito.mock(Loan.class);
 		Book book = new Book("test", "test", "test", 38);
 		assertTrue(book.getState() == eBookState_.AVAILABLE);//Verify book's status is available
 	    book.borrow(loan);//Borrow Book
@@ -401,7 +403,7 @@ public class BookTest {
 	@SuppressWarnings("static-access")
 	@Test(expected=RuntimeException.class)
 	public void testDisposeOnLoan() {
-		LoanStub loan = new LoanStub();
+		Loan loan = Mockito.mock(Loan.class);
 		Book book = new Book("test", "test", "test", 38);
 		assertTrue(book.getState() == eBookState_.AVAILABLE);//Verify book's status is available
 	    book.borrow(loan);//Borrow Book
@@ -413,7 +415,7 @@ public class BookTest {
 	@SuppressWarnings("static-access")
 	@Test(expected=RuntimeException.class)
 	public void testDisposeDisposed() {
-		LoanStub loan = new LoanStub();
+		Loan loan = Mockito.mock(Loan.class);
 		Book book = new Book("test", "test", "test", 38);
 		assertTrue(book.getState() == eBookState_.AVAILABLE);//Verify book's status is available
 	    book.borrow(loan);//Borrow Book
@@ -437,7 +439,7 @@ public class BookTest {
 	@SuppressWarnings("static-access")
 	@Test
 	public void testGetStateOnLoan() {	
-		LoanStub loan = new LoanStub();
+		Loan loan = Mockito.mock(Loan.class);
 	    Book book = new Book("test", "test", "test", 40);
 	    book.borrow(loan);//Borrow Book
 	    assertEquals(eBookState_.ON_LOAN, book.getState());//Verify book is on loan
@@ -447,7 +449,7 @@ public class BookTest {
 	@SuppressWarnings("static-access")
 	@Test
 	public void testGetStateLost() {	
-		LoanStub loan = new LoanStub();
+		Loan loan = Mockito.mock(Loan.class);
 	    Book book = new Book("test", "test", "test", 41);
 	    book.borrow(loan);//Borrow Book
 	    book.lose();//Lose Book
@@ -458,7 +460,7 @@ public class BookTest {
 	@SuppressWarnings("static-access")
 	@Test
 	public void testGetStateDamaged() {	
-		LoanStub loan = new LoanStub();
+		Loan loan = Mockito.mock(Loan.class);
 	    Book book = new Book("test", "test", "test", 42);
 	    book.borrow(loan);//Borrow Book
 	    book.returnBook(true);//Return Book damaged
@@ -469,7 +471,7 @@ public class BookTest {
 	@SuppressWarnings("static-access")
 	@Test
 	public void testGetStateDisposed() {	
-		LoanStub loan = new LoanStub();
+		Loan loan = Mockito.mock(Loan.class);
 	    Book book = new Book("test", "test", "test", 43);
 	    book.borrow(loan);//Borrow Book
 	    book.returnBook(true);//Return Book damaged

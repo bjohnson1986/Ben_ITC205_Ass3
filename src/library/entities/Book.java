@@ -39,7 +39,6 @@ public class Book implements IBook{
 			title_ = title;
 			callNumber_ = callNumber;
 			bookId_ = bookId;
-			//Verify if Book is available as soon as it is created.
 			eBookState_ = eBookState_.AVAILABLE;
 			
 		}
