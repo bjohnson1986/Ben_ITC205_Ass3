@@ -1,209 +1,185 @@
 package library.entities;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
-import library.interfaces.entities.EMemberState;
 import library.interfaces.entities.ILoan;
 import library.interfaces.entities.IMember;
+import library.interfaces.entities.EMemberState;
 
-public class Member implements IMember{
+public class Member implements IMember {
 
-	private String firstName_;
-	private String lastName_;
-	private String contactPhone_;
-	private String emailAddress_;
-	private int id_;
-	private EMemberState eMemberState_;
-	private List<ILoan> loanList_;
-	private float finesOwing_;
+	private final String firstName;
+	private final String lastName;
+	private final String contactPhone;
+	private final String emailAddress;
+	private final int id;
 	
-	public Member(String firstName, String lastName, String contactPhone, String emailAddress, int id)
-	throws IllegalArgumentException
-	{
-		if(firstName == null)
-		{
-			throw new RuntimeException("Error, first name cannot be null.");
+	private EMemberState state;
+	private List<ILoan> loanList;
+	private float totalFines;
+	
+	public Member(String firstName, String lastName, String contactPhone,
+			String email, int memberID) {
+		if ( !sane(firstName, lastName, contactPhone, email, memberID)) {
+			throw new IllegalArgumentException("Member: constructor : bad parameters");
 		}
-		if(firstName == "")
-		{
-			throw new RuntimeException("Error, first name cannot be blank.");
-		}
-		if(lastName == null)
-		{
-			throw new RuntimeException("Error, last name cannot be null.");
-		}
-		if(lastName == "")
-		{
-			throw new RuntimeException("Error, last name cannot be blank.");
-		}
-		if(contactPhone == null)
-		{
-			throw new RuntimeException("Error, phone number cannot be null.");
-		}
-		if(contactPhone == "")
-		{
-			throw new RuntimeException("Error, phone number cannot be blank.");
-		}
-		if(emailAddress == null)
-		{
-			throw new RuntimeException("Error, email address cannot be null.");
-		}
-		if(emailAddress == "")
-		{
-			throw new RuntimeException("Error, email address cannot be blank.");
-		}
-		if(id <= 0)
-		{
-			throw new RuntimeException("Error, member identification cannot be equal to, or, less than zero.");			
-		}
-		//All variables are valid, construct the object.
-		if(((firstName != null) && (firstName != "")) && ((lastName != null) && (lastName != "")) && ((contactPhone != null) && (contactPhone != "") && ((emailAddress != null) && (emailAddress != "")) && (id >= 0)))
-		{
-			firstName_ = firstName;
-			lastName_ = lastName;
-			contactPhone_ = contactPhone;
-			emailAddress_ = emailAddress;
-			id_ = id;
-		}
+		this.firstName = firstName;
+		this.lastName = lastName;
+		this.contactPhone = contactPhone;
+		this.emailAddress = email;
+		this.id = memberID;
+		this.loanList = new ArrayList<ILoan>();
+		this.totalFines = 0.0f;
+		this.state = EMemberState.BORROWING_ALLOWED;
 	}
+
 	
+	private boolean sane(String firstName, String lastName, String contactPhone,
+			String emailAddress, int memberID) {
+		return  ( firstName != null    && !firstName.isEmpty()    &&
+				  lastName != null     && !lastName.isEmpty()     &&
+				  contactPhone != null && !contactPhone.isEmpty() &&
+				  emailAddress != null && !emailAddress.isEmpty() &&
+				  memberID > 0 
+				);
+	}
+
+
+	@Override
 	public boolean hasOverDueLoans() {
-		boolean isOverdue = false;
-		for(ILoan i : loanList_)
-		{
-			if(i.isOverDue())
-			{
-				isOverdue = true;
+		for (ILoan loan : loanList) {
+			if (loan.isOverDue()) {
+				return true;
 			}
 		}
-		return isOverdue;
+		return false;
 	}
 
+	@Override
 	public boolean hasReachedLoanLimit() {
-		if(loanList_.size() == LOAN_LIMIT)
-		{
-			return true;
-		}
-		else{
-			return false;
-		}
+		boolean b = loanList.size() >= IMember.LOAN_LIMIT;
+		return b;
 	}
 
+	@Override
 	public boolean hasFinesPayable() {
-		if(finesOwing_ > 0)
-		{
-			return true;
-		}
-		else{
-			return false;
-		}
+		boolean b = totalFines > 0.0f;
+		return b;
 	}
 
+	@Override
 	public boolean hasReachedFineLimit() {
-		if(finesOwing_ >= FINE_LIMIT)
-		{
-			return true;
-		}
-		else{
-			return false;
-		}
+		boolean b = totalFines >= IMember.FINE_LIMIT;
+		return b;
 	}
 
+	@Override
 	public float getFineAmount() {
-		return finesOwing_;
+		return totalFines;
 	}
 
+	@Override
 	public void addFine(float fine) {
-	if(fine >= 0)
-	{
-		finesOwing_ += fine;		
-	}
-	else{
-		throw new IllegalArgumentException("Error, fines must be non-negative amounts.");
-	}	
+		if (fine < 0) {
+			throw new RuntimeException(String.format("Member: addFine : fine cannot be negative"));
+		}
+		totalFines += fine;
+		updateState();
 	}
 
+	@Override
 	public void payFine(float payment) {
-		if((payment >= 0) && (payment <= finesOwing_))
-		{
-			finesOwing_ = finesOwing_ - payment;
+		if (payment < 0 || payment > totalFines) {
+			throw new RuntimeException(String.format("Member: addFine : payment cannot be negative or greater than totalFines"));
 		}
-		if(payment < 0)
-		{
-			throw new IllegalArgumentException("Error, payment must be a non-negative amount.");
-		}
-		if(payment > finesOwing_)
-		{
-			throw new IllegalArgumentException("Error, payment cannot be more than due amount.");			
-		}
-		
+		totalFines -= payment;
+		updateState();
 	}
 
-	@SuppressWarnings("static-access")
+	@Override
 	public void addLoan(ILoan loan) {
-		if(loan == null)
-		{
-			throw new IllegalArgumentException("Error, loan cannot be null.");
+		if (!borrowingAllowed()) {
+			throw new RuntimeException(String.format("Member: addLoan : illegal operation in state: %s", state));
 		}
-		if(eMemberState_ == eMemberState_.BORROWING_DISALLOWED){
-			throw new IllegalArgumentException("Error, member cannot borrow at this time.");
-		}
-		if((loan != null) && (eMemberState_ != eMemberState_.BORROWING_DISALLOWED))
-		{
-			loanList_.add(loan);
-		}
+		loanList.add(loan);
+		updateState();
 	}
 
+	@Override
 	public List<ILoan> getLoans() {
-		return loanList_;		
+		return Collections.unmodifiableList(loanList);
 	}
 
+	@Override
 	public void removeLoan(ILoan loan) {
-		
-		boolean isFound = false;
-		
-		for(ILoan i : loanList_)
-		{
-			if(i == loan)
-			{
-				isFound = true;
-			}
+		if (loan == null || !loanList.contains(loan)) {
+			throw new RuntimeException(String.format("Member: removeLoan : loan is null or not found in loanList"));
 		}
-		if(loan == null)
-		{
-			throw new IllegalArgumentException("Error, loan cannot be null.");
-		}
-		if(!isFound){
-			throw new IllegalArgumentException("Error, loan does not exist.");
-		}
-		if((loan != null) && (isFound))
-		{
-			loanList_.remove(loan);
-		}
+		loanList.remove(loan);
+		updateState();
 	}
 
+	
+	@Override
 	public EMemberState getState() {
-		return eMemberState_;
+		return state;
 	}
 
+	
+	@Override
 	public String getFirstName() {
-		return firstName_;
+		return firstName;
 	}
 
+	
+	@Override
 	public String getLastName() {
-		return lastName_;
+		return lastName;
 	}
 
+	
+	@Override
 	public String getContactPhone() {
-		return contactPhone_;
+		return contactPhone;
 	}
 
+	
+	@Override
 	public String getEmailAddress() {
-		return emailAddress_;
+		return emailAddress;
 	}
 
+	
+	@Override
 	public int getID() {
-		return id_;
+		return id;
 	}
+
+	
+	@Override
+	public String toString() {
+		return String.format(
+				"Id: %d\nName: %s %s\nContact Phone: %s\nEmail: %s\nOutstanding Charges: %0.2f", id,
+				firstName, lastName, contactPhone, emailAddress, totalFines);
+	}
+
+	private Boolean borrowingAllowed() {
+		boolean b = !hasOverDueLoans() &&
+				!hasReachedFineLimit() &&
+				!hasReachedLoanLimit();
+		return b;
+	}
+
+	private void updateState() {
+		if (borrowingAllowed()) {
+			state = EMemberState.BORROWING_ALLOWED;
+		}
+		else {
+			state = EMemberState.BORROWING_DISALLOWED;
+		}
+	}
+
 
 }

@@ -1,124 +1,112 @@
 package library.daos;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import library.interfaces.daos.IMemberDAO;
-import library.interfaces.daos.IMemberHelper;
 import library.interfaces.entities.IMember;
+import library.interfaces.daos.IMemberHelper;
 
-public class MemberDAO implements IMemberDAO{
+public class MemberDAO implements IMemberDAO {
+
+	private IMemberHelper helper;
+	private Map<Integer, IMember> memberMap;
+	private int nextID;
 	
-	private IMemberHelper iMemberHelper_;	
-	private int nextMemberId_;
-	private List<IMember> memberList_;
-	
-	public MemberDAO(IMemberHelper iMemberHelper)
-	throws IllegalArgumentException
-	{
-		if(iMemberHelper == null)
-		{
-			throw new IllegalArgumentException("Error, IMemberHelper cannot be null.");
+	public MemberDAO(IMemberHelper helper) {
+		if (helper == null ) {
+			throw new IllegalArgumentException(
+				String.format("MemberMapDAO : constructor : helper cannot be null."));
 		}
-		else{
-			iMemberHelper_ = iMemberHelper;
-			nextMemberId_ = 1;
-		}
+		this.helper = helper;
+		this.memberMap = new HashMap<Integer, IMember>();
+		this.nextID = 1;
 	}
 
+	public MemberDAO(IMemberHelper helper, Map<Integer,IMember> memberMap) {
+		this(helper);
+		if (memberMap == null ) {
+			throw new IllegalArgumentException(
+				String.format("MemberMapDAO : constructor : memberMap cannot be null."));
+		}
+		this.memberMap = memberMap;
+	}
+
+	
+	@Override
 	public IMember addMember(String firstName, String lastName,
 			String contactPhone, String emailAddress) {
-		if(firstName == null)
-		{
-			throw new IllegalArgumentException("Error, first name cannot be null.");
-		}
-		if(firstName == "")
-		{
-			throw new IllegalArgumentException("Error, first name cannot be blank.");
-		}
-		if(lastName == null)
-		{
-			throw new IllegalArgumentException("Error, last name cannot be null.");
-		}
-		if(lastName == "")
-		{
-			throw new IllegalArgumentException("Error, last name cannot be blank.");
-		}
-		if(contactPhone == null)
-		{
-			throw new IllegalArgumentException("Error, phone number cannot be null.");
-		}
-		if(contactPhone == "")
-		{
-			throw new IllegalArgumentException("Error, phone number cannot be blank.");
-		}
-		if(emailAddress == null)
-		{
-			throw new IllegalArgumentException("Error, email address cannot be null.");
-		}
-		if(emailAddress == "")
-		{
-			throw new IllegalArgumentException("Error, email address cannot be blank.");
-		}		
-		
-		IMember member = null;
-		
-		if(((firstName != null) && (firstName != "")) && ((lastName != null) && (lastName != "")) && ((contactPhone != null) && (contactPhone != "")) && ((emailAddress != null) && (emailAddress != "")))
-		{
-			member = iMemberHelper_.makeMember(firstName, lastName, contactPhone, emailAddress, nextMemberId_);
-			memberList_.add(member);
-			nextMemberId_ += 1;
-		}
-		return member;
+		int id = getNextId();
+		IMember mem = helper.makeMember(firstName, lastName, contactPhone, emailAddress, id);
+		memberMap.put(Integer.valueOf(id), mem);
+		return mem;
 	}
 
+	@Override
 	public IMember getMemberByID(int id) {
-		IMember member = null;
-		for(IMember i : memberList_){
-			if(i.getID() == id)
-			{
-				return member = i;
-			}
+		if (memberMap.keySet().contains(Integer.valueOf(id))) {
+			return memberMap.get(Integer.valueOf(id));
 		}
-		return member;
+		return null;
 	}
 
+	@Override
 	public List<IMember> listMembers() {
-		return memberList_;
+		List<IMember> list = new ArrayList<IMember>(memberMap.values());
+		return Collections.unmodifiableList(list);
 	}
 
+	@Override
 	public List<IMember> findMembersByLastName(String lastName) {
-		ArrayList<IMember> listMatchingLastName = new ArrayList<IMember>();
-		for(IMember i : memberList_){
-			if(i.getLastName() == lastName)
-			{
-				listMatchingLastName.add(i);
+		if ( lastName == null || lastName.isEmpty()) {
+			throw new IllegalArgumentException(
+				String.format("MemberMapDAO : findMembersByLastName : lastName cannot be null or blank"));
+		}
+		List<IMember> list = new ArrayList<IMember>();
+		for (IMember m : memberMap.values()) {
+			if (lastName.equals(m.getLastName())) {
+				list.add(m);
 			}
 		}
-		return listMatchingLastName;
+		return Collections.unmodifiableList(list);
 	}
 
 	@Override
 	public List<IMember> findMembersByEmailAddress(String emailAddress) {
-		ArrayList<IMember> listMatchingEmailAddress = new ArrayList<IMember>();
-		for(IMember i : memberList_){
-			if(i.getEmailAddress() == emailAddress)
-			{
-				listMatchingEmailAddress.add(i);
+		if ( emailAddress == null || emailAddress.isEmpty()) {
+			throw new IllegalArgumentException(
+				String.format("MemberMapDAO : findMembersByEmailAddress : emailAddress cannot be null or blank"));
+		}
+		List<IMember> list = new ArrayList<IMember>();
+		for (IMember m : memberMap.values()) {
+			if (emailAddress.equals(m.getEmailAddress())) {
+				list.add(m);
 			}
 		}
-		return listMatchingEmailAddress;
+		return Collections.unmodifiableList(list);
 	}
 
+	@Override
 	public List<IMember> findMembersByNames(String firstName, String lastName) {
-		ArrayList<IMember> listMatchingName = new ArrayList<IMember>();
-		for(IMember i : memberList_){
-			if((i.getLastName() == firstName) && (i.getLastName() == lastName))
-			{
-				listMatchingName.add(i);
+		if ( firstName == null || firstName.isEmpty() || lastName == null || lastName.isEmpty()) {
+			throw new IllegalArgumentException(
+				String.format("MemberMapDAO : findMembersByNames : firstName and lastName cannot be null or blank"));
+		}
+		List<IMember> list = new ArrayList<IMember>();
+		for (IMember m : memberMap.values()) {
+			if (firstName.equals(m.getFirstName()) && lastName.equals(m.getLastName())) {
+				list.add(m);
 			}
 		}
-		return listMatchingName;
+		return Collections.unmodifiableList(list);
 	}
+
+	private int getNextId() {
+		return nextID++;
+	}
+
 
 }
