@@ -7,8 +7,6 @@ import java.util.List;
 import library.daos.BookHelper;
 import library.daos.BookMapDAO;
 import library.entities.Book;
-import library.interfaces.daos.IBookDAO;
-import library.interfaces.daos.IBookHelper;
 import library.interfaces.entities.IBook;
 
 import org.junit.After;
@@ -23,7 +21,6 @@ public class BookMapDAOInt_Test {
 	private String author_;
 	private String title_;
 	private String callNumber_;
-	private int id_;
 	private List<IBook> bookList_;
 
 	@Before
@@ -66,23 +63,34 @@ public class BookMapDAOInt_Test {
 		bookDao_ = new BookMapDAO(bookHelper_);
 		book_ = bookDao_.addBook(author_, title_, callNumber_);
 		bookList_ = bookDao_.listBooks();
-		assertEquals(1, bookList_);
+		assertEquals(1, bookList_.size());	
 	}
 
 	@Test
 	public void testFindBooksByAuthor() {
+		bookHelper_ = new BookHelper();
+		bookDao_ = new BookMapDAO(bookHelper_);
 		book_ = bookDao_.addBook(author_, title_, callNumber_);
-		assertEquals(author_, book_.getAuthor());
+		bookList_ = bookDao_.findBooksByAuthor("author");
+		assertEquals(1, bookList_.size());
 	}
 
 	@Test
 	public void testFindBooksByTitle() {
-		fail("Not yet implemented");
+		bookHelper_ = new BookHelper();
+		bookDao_ = new BookMapDAO(bookHelper_);
+		book_ = bookDao_.addBook(author_, title_, callNumber_);
+		bookList_ = bookDao_.findBooksByTitle("title");
+		assertEquals(1, bookList_.size());
 	}
 
 	@Test
 	public void testFindBooksByAuthorTitle() {
-		fail("Not yet implemented");
+		bookHelper_ = new BookHelper();
+		bookDao_ = new BookMapDAO(bookHelper_);
+		book_ = bookDao_.addBook(author_, title_, callNumber_);
+		bookList_ = bookDao_.findBooksByAuthorTitle("author",  "title");
+		assertEquals(1, bookList_.size());
 	}
 
 }
