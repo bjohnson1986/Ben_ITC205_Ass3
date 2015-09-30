@@ -20,6 +20,7 @@ import library.interfaces.hardware.IDisplay;
 import library.interfaces.hardware.IPrinter;
 import library.interfaces.hardware.IScanner;
 import library.interfaces.hardware.IScannerListener;
+import library.panels.borrow.ConfirmLoanPanel;
 
 @SuppressWarnings("unused")
 public class BorrowUC_CTL implements ICardReaderListener, 
@@ -43,33 +44,70 @@ public class BorrowUC_CTL implements ICardReaderListener,
 	private IMember borrower;
 	
 	private JPanel previous;
+	private ConfirmLoanPanel confirmLoanPanel;
 
 
 	public BorrowUC_CTL(ICardReader reader, IScanner scanner, 
 			IPrinter printer, IDisplay display,
 			IBookDAO bookDAO, ILoanDAO loanDAO, IMemberDAO memberDAO ) {
 
+		this.reader = reader;
+		this.scanner = scanner;
+		//this.confirmLoanPanel = confi
 		this.display = display;
 		this.ui = new BorrowUC_UI(this);
 		state = EBorrowState.CREATED;
 	}
 	
+	@SuppressWarnings("static-access")
 	public void initialise() {
 		previous = display.getDisplay();
-		display.setDisplay((JPanel) ui, "Borrow UI");		
+		display.setDisplay((JPanel) ui, "Borrow UI");
+		reader.addListener(this);
+		scanner.addListener(this);
+		setState(state.INITIALIZED);
 	}
 	
 	public void close() {
 		display.setDisplay(previous, "Main Menu");
 	}
 
+	@SuppressWarnings("static-access")
 	@Override
 	public void cardSwiped(int memberID) {
-		throw new RuntimeException("Not implemented yet");
+		if (state == state.INITIALIZED)
+		{
+			memberDAO.getMemberByID(memberID);
+			if(borrower.hasOverDueLoans() || borrower.hasReachedLoanLimit() || borrower.hasFinesPayable() || borrower.hasReachedFineLimit())
+				 {
+				 ui.displayMemberDetails(borrower.getID(), borrower.getFirstName(), borrower.getLastName());
+				 ui.displayExistingLoan("");//Need to parse loan info
+				 ui.displayOutstandingFineMessage(borrower.getFineAmount());
+				 ui.displayOverDueMessage();
+				 ui.displayAtLoanLimitMessage();
+				 ui.displayErrorMessage("");//Set error message
+				 }
+			 else
+			 {
+				setState(state.SCANNING_BOOKS);
+				ui.setState(state.SCANNING_BOOKS);			 
+				ui.displayScannedBookDetails("");//Add param
+				ui.displayPendingLoan("");//Add param
+				ui.displayOutstandingFineMessage(0.0f);//Add param
+			 
+				reader.setEnabled(true);
+				scanner.setEnabled(true);	
+				borrower.getLoans();
+			 }
+			 
+		}
+		else{
+			throw new RuntimeException("The system is not initialized.");		
+		}
+		
 	}
 	
-	
-	
+		
 	@Override
 	public void bookScanned(int barcode) {
 		throw new RuntimeException("Not implemented yet");
@@ -82,6 +120,7 @@ public class BorrowUC_CTL implements ICardReaderListener,
 
 	@Override
 	public void cancelled() {
+		//System.out.println("Flag");
 		close();
 	}
 	
