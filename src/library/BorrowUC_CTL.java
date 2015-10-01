@@ -11,6 +11,7 @@ import library.interfaces.IBorrowUIListener;
 import library.interfaces.daos.IBookDAO;
 import library.interfaces.daos.ILoanDAO;
 import library.interfaces.daos.IMemberDAO;
+import library.interfaces.entities.EBookState;
 import library.interfaces.entities.IBook;
 import library.interfaces.entities.ILoan;
 import library.interfaces.entities.IMember;
@@ -34,7 +35,8 @@ public class BorrowUC_CTL implements ICardReaderListener,
 	//private String state;
 	private int scanCount = 0;
 	private IBorrowUI ui;
-	private EBorrowState state; 
+	private EBorrowState borrowState; 
+	private EBookState bookState;
 	private IBookDAO bookDAO;
 	private IMemberDAO memberDAO;
 	private ILoanDAO loanDAO;
@@ -56,7 +58,7 @@ public class BorrowUC_CTL implements ICardReaderListener,
 		//this.confirmLoanPanel = confi
 		this.display = display;
 		this.ui = new BorrowUC_UI(this);
-		state = EBorrowState.CREATED;
+		borrowState = EBorrowState.CREATED;
 	}
 	
 	@SuppressWarnings("static-access")
@@ -65,7 +67,7 @@ public class BorrowUC_CTL implements ICardReaderListener,
 		display.setDisplay((JPanel) ui, "Borrow UI");
 		reader.addListener(this);
 		scanner.addListener(this);
-		setState(state.INITIALIZED);
+		setState(borrowState.INITIALIZED);
 	}
 	
 	public void close() {
@@ -75,7 +77,7 @@ public class BorrowUC_CTL implements ICardReaderListener,
 	@SuppressWarnings("static-access")
 	@Override
 	public void cardSwiped(int memberID) {
-		if (state == state.INITIALIZED)
+		if (borrowState == borrowState.INITIALIZED)
 		{
 			memberDAO.getMemberByID(memberID);
 			if(borrower.hasOverDueLoans() || borrower.hasReachedLoanLimit() || borrower.hasFinesPayable() || borrower.hasReachedFineLimit())
@@ -89,15 +91,25 @@ public class BorrowUC_CTL implements ICardReaderListener,
 				 }
 			 else
 			 {
-				setState(state.SCANNING_BOOKS);
-				ui.setState(state.SCANNING_BOOKS);			 
+				setState(borrowState.SCANNING_BOOKS);
+				reader.setEnabled(true);
+				scanner.setEnabled(true);
+				ui.setState(borrowState.SCANNING_BOOKS);			 
 				ui.displayScannedBookDetails("");//Add param
 				ui.displayPendingLoan("");//Add param
 				ui.displayOutstandingFineMessage(0.0f);//Add param
 			 
 				reader.setEnabled(true);
-				scanner.setEnabled(true);	
-				borrower.getLoans();
+				scanner.setEnabled(true);
+				
+				String loanDetails = "";
+				List <ILoan> loanList = borrower.getLoans();
+				for (ILoan loan : loanList)
+				{
+					loanDetails = loanDetails + loan.toString();
+				}
+				ui.displayExistingLoan(loanDetails);
+				
 			 }
 			 
 		}
@@ -108,11 +120,51 @@ public class BorrowUC_CTL implements ICardReaderListener,
 	}
 	
 		
+	@SuppressWarnings("static-access")
 	@Override
 	public void bookScanned(int barcode) {
-		throw new RuntimeException("Not implemented yet");
+        if (borrowState == borrowState.SCANNING_BOOKS)
+        {
+            IBook book = bookDAO.getBookByID(barcode);
+            if (book == null)
+            {
+                ui.displayErrorMessage("The scanned item does not belong to this library.");
+            }
+            else
+            {
+            	bookState = book.getState();
+            	int id = book.getID();
+            	boolean bookOnList = bookList.contains(book);
+            			
+            	if (bookState != bookState.AVAILABLE)
+            	{
+            		ui.displayErrorMessage("This item is not currently available.");
+            	}
+            	if (!bookOnList)
+            	{
+            		ui.displayErrorMessage("This item has already been scanned.");
+            	}
+            	if (bookState == bookState.AVAILABLE)
+            	{
+            		ILoan newLoan = loanDAO.createLoan(borrower, book);
+            		scanCount = scanCount + 1;
+            		bookList.add(book);
+            		loanList.add(newLoan);
+            		
+            		String bookDetails = book.getID() + " " + book.getTitle() + " " + book.getAuthor() + " " + book.getCallNumber();
+            		ui.displayScannedBookDetails(bookDetails);
+    				String loanDetails = "";
+    				for (ILoan loan : loanList)
+    				{
+    					loanDetails = loanDetails + loan.toString();
+    				}
+            		ui.displayPendingLoan(loanDetails);
+            		
+            		
+            	}
+            }
 	}
-
+	}
 	
 	private void setState(EBorrowState state) {
 		throw new RuntimeException("Not implemented yet");
