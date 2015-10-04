@@ -1,9 +1,10 @@
 package stubs;
 
+import library.interfaces.hardware.IScanner;
 import library.interfaces.hardware.IScannerListener;
 
 
-public class ScannerStub {
+public class ScannerStub implements IScanner{
 	private IScannerListener listener_;
 	private boolean isEnabled_;
 

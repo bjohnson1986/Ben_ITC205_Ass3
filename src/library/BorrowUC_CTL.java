@@ -32,7 +32,6 @@ public class BorrowUC_CTL implements ICardReaderListener,
 	private IScanner scanner_; 
 	private IPrinter printer_; 
 	private IDisplay display_;
-	//private String state;
 	private int scanCount_ = 0;
 	private IBorrowUI ui_;
 	private EBorrowState borrowState_; 
@@ -56,17 +55,28 @@ public class BorrowUC_CTL implements ICardReaderListener,
 		this.reader_ = reader_;
 		this.scanner_ = scanner_;
 		this.display_ = display_;
+		this.reader_.setEnabled(false);
+		this.scanner_.setEnabled(false);
 		this.ui_ = new BorrowUC_UI(this);
 		borrowState_ = EBorrowState.CREATED;
 	}
 	
 	@SuppressWarnings("static-access")
 	public void initialise() {
+		if (borrowState_ == borrowState_.CREATED)
+		{
 		previous_ = display_.getDisplay();
 		display_.setDisplay((JPanel) ui_, "Borrow UI");
 		reader_.addListener(this);
 		scanner_.addListener(this);
+		this.reader_.setEnabled(true);
+		this.scanner_.setEnabled(false);
 		setState(borrowState_.INITIALIZED);
+		}
+		else
+		{
+			throw new RuntimeException("The system is not created state.");				
+		}
 	}
 	
 	public void close() {
@@ -201,6 +211,10 @@ public class BorrowUC_CTL implements ICardReaderListener,
         }
 	}
 
+	public EBorrowState getState() {
+		return borrowState_;
+	}
+	
 	@SuppressWarnings("static-access")
 	@Override
 	public void cancelled() {

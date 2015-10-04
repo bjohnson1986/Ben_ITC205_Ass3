@@ -2,7 +2,9 @@ package stubs;
 
 import javax.swing.JPanel;
 
-public class DisplayStub {
+import library.interfaces.hardware.IDisplay;
+
+public class DisplayStub implements IDisplay{
 	
 	private JPanel display_;
 	private String id_;

@@ -1,6 +1,8 @@
 package stubs;
 
-public class PrinterStub {
+import library.interfaces.hardware.IPrinter;
+
+public class PrinterStub implements IPrinter{
 	
 	private String text_;
 	

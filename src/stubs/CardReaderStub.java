@@ -1,8 +1,9 @@
 package stubs;
 
+import library.interfaces.hardware.ICardReader;
 import library.interfaces.hardware.ICardReaderListener;
 
-public class CardReaderStub {
+public class CardReaderStub implements ICardReader{
 	private boolean isEnabled_;
 	private ICardReaderListener listener_;
 	
