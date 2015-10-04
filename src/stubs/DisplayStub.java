@@ -1,24 +1,31 @@
 package stubs;
 
-import static org.junit.Assert.*;
-
-import org.junit.Test;
+import javax.swing.JPanel;
 
 public class DisplayStub {
-
-	@Test
-	public final void testDisplay() {
-		fail("Not yet implemented");
+	
+	private JPanel display_;
+	private String id_;
+	
+	public DisplayStub()
+	{
+		
 	}
 
-	@Test
-	public final void testGetDisplay() {
-		fail("Not yet implemented");
+	public JPanel getDisplay()
+	{
+		return display_;
 	}
-
-	@Test
-	public final void testSetDisplay() {
-		fail("Not yet implemented");
+	
+	public void setDisplay(JPanel display, String id)
+	{
+		display_ = display;
+		id_ = id;
+	}
+	
+	public String getId()
+	{
+		return id_;
 	}
 
 }
