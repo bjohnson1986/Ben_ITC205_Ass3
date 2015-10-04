@@ -163,7 +163,7 @@ public class BorrowUC_CTL implements ICardReaderListener,
             		ui_.displayScannedBookDetails(bookDetails);
             		
             		
-            		String loanDetails = buildLoanList();
+            		String loanDetails = buildLoanList(loanList_);
             		ui_.displayPendingLoan(loanDetails);
             		
             		
@@ -302,7 +302,7 @@ public class BorrowUC_CTL implements ICardReaderListener,
 	                scanCount_ = 0;
 					ui_.displayMemberDetails(borrower_.getID(), borrower_.getFirstName(), borrower_.getLastName());
 					List <ILoan> currentLoans = borrower_.getLoans();
-					ui_.displayExistingLoan(buildLoanListDisplay(currentLoans));
+					ui_.displayExistingLoan(buildLoanList(currentLoans));
 	            }
 	            else
 	            {
@@ -324,12 +324,18 @@ public class BorrowUC_CTL implements ICardReaderListener,
 		return bld.toString();		
 	}
 	
-    private String buildLoanList()
+    private String buildLoanList(List<ILoan> loanList)
     {
         String loanDetail = "";
-        for (ILoan loanList1: loanList_)
+        if (loanList.size() > 0)
         {
-            loanDetail = loanDetail + loanList1.toString();
+	        for (ILoan loanList1: loanList)
+	        {
+	        	if (loanList1 != null)
+	        	{
+	            loanDetail = loanDetail + loanList1.toString();
+	        	}
+	        }
         }
         return loanDetail;
     }

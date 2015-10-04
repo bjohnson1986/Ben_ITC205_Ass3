@@ -2,6 +2,7 @@ package test;
 
 import static org.junit.Assert.*;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import library.BorrowUC_CTL;
@@ -73,7 +74,7 @@ public class BorrowUC_CTLTest {
         book4_ = mock(IBook.class);
         book5_ = mock(IBook.class);
         
-        List<ILoan> emptyLoanList = null;
+        List<ILoan> emptyLoanList = new ArrayList<>();
         
         //Below: Setup what the mock return when called
         when(memberDAO_.getMemberByID(0)).thenReturn(member0_);
@@ -101,10 +102,6 @@ public class BorrowUC_CTLTest {
 	public void tearDown() throws Exception {
 	}
 	
-	@Test
-	public final void testBorrowUC_CTL() {
-		fail("Not yet implemented");
-	}
 
 	@Test
 	public final void testConstructor()
@@ -200,17 +197,61 @@ public class BorrowUC_CTLTest {
 		assertEquals(1, controlClass.getLoanList().size());
 		
 		controlClass.scansCompleted();
-		assertEquals(controlClass.getState(), EBorrowState.COMPLETED);	
+		assertEquals(controlClass.getState(), EBorrowState.CONFIRMING_LOANS);	
 	}
 
 	@Test
 	public final void testLoansConfirmed() {
-		fail("Not yet implemented");
+		BorrowUC_CTL controlClass = new BorrowUC_CTL(reader_, scanner_, printer_, display_, bookDAO_, loanDAO_, memberDAO_);
+		assertEquals(controlClass.getState(), EBorrowState.CREATED);
+		
+		controlClass.initialise();
+		assertEquals(controlClass.getState(), EBorrowState.INITIALIZED);
+		
+		controlClass.cardSwiped(0);
+		assertEquals(controlClass.getState(), EBorrowState.SCANNING_BOOKS);
+		
+		assertEquals(0, controlClass.getLoanList().size());
+		
+		controlClass.bookScanned(0);
+		assertEquals(1, controlClass.getScanCount());
+		assertEquals(1, controlClass.getLoanList().size());
+		
+		controlClass.scansCompleted();
+		assertEquals(controlClass.getState(), EBorrowState.CONFIRMING_LOANS);
+		
+		controlClass.loansConfirmed();
+		assertEquals(controlClass.getState(), EBorrowState.COMPLETED);
+		assertEquals(false, reader_.getEnabled());
+		assertEquals(false, scanner_.getEnabled());
 	}
 
 	@Test
 	public final void testLoansRejected() {
-		fail("Not yet implemented");
+		BorrowUC_CTL controlClass = new BorrowUC_CTL(reader_, scanner_, printer_, display_, bookDAO_, loanDAO_, memberDAO_);
+		assertEquals(controlClass.getState(), EBorrowState.CREATED);
+		
+		controlClass.initialise();
+		assertEquals(controlClass.getState(), EBorrowState.INITIALIZED);
+		
+		controlClass.cardSwiped(0);
+		assertEquals(controlClass.getState(), EBorrowState.SCANNING_BOOKS);
+		
+		assertEquals(0, controlClass.getLoanList().size());
+		
+		controlClass.bookScanned(0);
+		assertEquals(1, controlClass.getScanCount());
+		assertEquals(1, controlClass.getLoanList().size());
+		
+		controlClass.scansCompleted();
+		assertEquals(controlClass.getState(), EBorrowState.CONFIRMING_LOANS);
+		
+		controlClass.loansRejected();
+		assertEquals(controlClass.getState(), EBorrowState.SCANNING_BOOKS);
+		assertEquals(false, reader_.getEnabled());
+		assertEquals(true, scanner_.getEnabled());
+		assertEquals(0, controlClass.getScanCount());
+		assertEquals(0, controlClass.getLoanList().size());
 	}
 
 }
