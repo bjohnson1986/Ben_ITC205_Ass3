@@ -2,8 +2,11 @@ package library.daos;
 
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Collections;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import library.interfaces.daos.ILoanDAO;
 import library.interfaces.daos.ILoanHelper;
@@ -11,122 +14,137 @@ import library.interfaces.entities.IBook;
 import library.interfaces.entities.ILoan;
 import library.interfaces.entities.IMember;
 
-public class LoanMapDAO implements ILoanDAO{
+public class LoanMapDAO implements ILoanDAO {
+
+	private int nextID;
+	private Map<Integer, ILoan> loanMap;
+	private ILoanHelper helper;
+	private Calendar cal;
 	
-	private ILoanHelper iLoanHelper_;
-	private List<ILoan> loanList_;
-	private int nextLoanId_;
 
-	public LoanMapDAO(ILoanHelper iLoanHelper)
-	throws IllegalArgumentException
-	{
-		if(iLoanHelper == null)
-		{
-			throw new IllegalArgumentException("Error, ILoanHelper cannot be null.");
+	public LoanMapDAO(ILoanHelper helper) {
+		if (helper == null ) {
+			throw new IllegalArgumentException(
+				String.format("LoanMapDAO : constructor : helper cannot be null."));
 		}
-		else
-		{
-			iLoanHelper_ = iLoanHelper;
-			loanList_ = new ArrayList<ILoan>();
-			nextLoanId_ = 0;
-		}
-	}
-	@SuppressWarnings("static-access")
-	public ILoan createLoan(IMember borrower, IBook book) {
-		ILoan loan = null;
-		if(borrower == null)
-		{
-			throw new IllegalArgumentException("Error, borrower cannot be null.");
-		}
-		if(book == null)
-		{
-			throw new IllegalArgumentException("Error, book cannot be null.");
-		}
-		if((borrower != null) && (book != null))
-		{
-			Calendar dueDateCal = Calendar.getInstance();
-			Date borrowDate = new Date();
-			dueDateCal.add(Calendar.DAY_OF_MONTH, loan.LOAN_PERIOD);//Might need rework.
-			Date dueDate = dueDateCal.getTime();
-			loan = iLoanHelper_.makeLoan(book, borrower, borrowDate, dueDate);
-		}
-		return loan;
+		nextID = 0;
+		this.helper = helper; 
+		loanMap = new HashMap<Integer, ILoan>();
+		cal = Calendar.getInstance();
 	}
 
-	@Override
-	public void commitLoan(ILoan loan) {
-		loan.commit(nextLoanId_);
-		loanList_.add(loan);
-		nextLoanId_ ++;
+	public LoanMapDAO(ILoanHelper helper, Map<Integer,ILoan> loanMap) {
+		this(helper);
+		if (loanMap == null ) {
+			throw new IllegalArgumentException(
+				String.format("LoanMapDAO : constructor : loanMap cannot be null."));
+		}
+		this.loanMap = loanMap;
 	}
+
 
 	@Override
 	public ILoan getLoanByID(int id) {
-		try
-		{
-			//Loan exists
-			return loanList_.get(id);
+		if (loanMap.containsKey(Integer.valueOf(id))) {
+			return loanMap.get(Integer.valueOf(id));
 		}
-		catch (Exception e){
-			//Loan does not exist
-			return null;
+		return null;
+	}
+
+	public ILoan getLoanByBook(IBook book) {
+		if (book == null ) {
+			throw new IllegalArgumentException(
+				String.format("LoanMapDAO : getLoanByBook : book cannot be null."));
 		}
+		for (ILoan loan : loanMap.values()) {
+			IBook tempBook = loan.getBook();
+			if (book.equals(tempBook)) {
+				return loan;
+			}
+		}
+		return null;
 	}
 
 	@Override
 	public List<ILoan> listLoans() {
-		return loanList_;
+		List<ILoan> list = new ArrayList<ILoan>(loanMap.values());
+		return Collections.unmodifiableList(list);
 	}
 
+	@Override
 	public List<ILoan> findLoansByBorrower(IMember borrower) {
-		ArrayList<ILoan> loanMatchesBorrower = new ArrayList<ILoan>();
-		//Loop over loan list, if a loan is associated with the borrower, then add to the match list.
-		for (ILoan loan : loanList_)
-		{
-			if (loan.getBorrower() == borrower)
-			{
-				loanMatchesBorrower.add(loan);
+		if (borrower == null ) {
+			throw new IllegalArgumentException(
+				String.format("LoanMapDAO : findLoansByBorrower : borrower cannot be null."));
+		}
+		List<ILoan> list = new ArrayList<ILoan>();
+		for (ILoan loan : loanMap.values()) {
+			if (borrower.equals(loan.getBorrower())) {
+				list.add(loan);
 			}
 		}
-		return loanMatchesBorrower;
+		return Collections.unmodifiableList(list);
 	}
 
+	@Override
 	public List<ILoan> findLoansByBookTitle(String title) {
-		ArrayList<ILoan> loanMatchesBookTitle = new ArrayList<ILoan>();
-		//Loop over loan list, if a loan is associated with the book title, then add to the match list.
-		for (ILoan loan : loanList_)
-		{
-			IBook book = loan.getBook();
-			String bookTitle = book.getTitle();
-			if(bookTitle == title)
-			{
-				loanMatchesBookTitle.add(loan);
+		if (title == null || title.isEmpty()) {
+			throw new IllegalArgumentException(
+				String.format("LoanMapDAO : findLoansByBookTitle : title cannot be null or blank."));
+		}
+		List<ILoan> list = new ArrayList<ILoan>();
+		for (ILoan loan : loanMap.values()) {
+			String tempTitle = loan.getBook().getTitle();
+			if (title.equals(tempTitle)) {
+				list.add(loan);
 			}
 		}
-		return loanMatchesBookTitle;
+		return Collections.unmodifiableList(list);
 	}
 
 	@Override
 	public void updateOverDueStatus(Date currentDate) {
-		//Loop over loan list and update overdue status if overdue.
-		for (ILoan loan : loanList_)
-		{
+		for (ILoan loan : loanMap.values()) {
 			loan.checkOverDue(currentDate);
 		}
 	}
 
 	@Override
 	public List<ILoan> findOverDueLoans() {
-		ArrayList<ILoan> overdueLoans = new ArrayList<ILoan>();
-		//Loop over loan list, if a loan is overdue, then add to the overdue list.
-		for (ILoan loan : loanList_)
-		{
-			if(loan.isOverDue())
-			{
-				overdueLoans.add(loan);
+		List<ILoan> list = new ArrayList<ILoan>();
+		for (ILoan loan : loanMap.values()) {
+			if (loan.isOverDue()) {
+				list.add(loan);
 			}
 		}
-		return overdueLoans;
+		return Collections.unmodifiableList(list);
+	}
+
+	private int getNextId() {
+		return ++nextID;
+	}
+
+
+	@Override
+	public ILoan createLoan(IMember borrower, IBook book) {
+		if (borrower == null || book == null) {
+			throw new IllegalArgumentException(
+				String.format("LoanMapDAO : createLoan : borrower and book cannot be null."));
+		}
+		Date borrowDate = new Date();
+		cal.setTime(borrowDate);
+		cal.add(Calendar.DATE, ILoan.LOAN_PERIOD);
+		Date dueDate = cal.getTime();
+		ILoan loan = helper.makeLoan(book, borrower, borrowDate, dueDate);
+		return loan;
+	}
+
+	
+	@Override
+	public void commitLoan(ILoan loan) {
+		int id = getNextId();
+		loan.commit(id);		
+		loanMap.put(id, loan);		
 	}
 
 }

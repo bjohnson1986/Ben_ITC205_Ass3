@@ -57,6 +57,8 @@ public class BorrowUC_CTL implements ICardReaderListener,
 		this.printer_ = printer;
         this.bookDAO_ = bookDAO;
         this.loanDAO_ = loanDAO;
+        this.bookList_ = new ArrayList<>();
+        this.loanList_ = new ArrayList<>();
         this.memberDAO_ = memberDAO;
 		this.reader_.setEnabled(false);
 		this.scanner_.setEnabled(false);
@@ -140,7 +142,6 @@ public class BorrowUC_CTL implements ICardReaderListener,
             else
             {
             	bookState_ = book.getState();
-            	int id = book.getID();
             	boolean bookOnList = bookList_.contains(book);
             			
             	if (bookState_ != bookState_.AVAILABLE)
@@ -151,7 +152,7 @@ public class BorrowUC_CTL implements ICardReaderListener,
             	{
             		ui_.displayErrorMessage("This item has already been scanned.");
             	}
-            	if (bookState_ == bookState_.AVAILABLE)
+            	if ((bookState_ == bookState_.AVAILABLE) && (!bookList_.contains(book)))
             	{
             		ILoan newLoan = loanDAO_.createLoan(borrower_, book);
             		scanCount_ = scanCount_ + 1;
@@ -160,11 +161,9 @@ public class BorrowUC_CTL implements ICardReaderListener,
             		
             		String bookDetails = book.getID() + " " + book.getTitle() + " " + book.getAuthor() + " " + book.getCallNumber();
             		ui_.displayScannedBookDetails(bookDetails);
-    				String loanDetails = "";
-    				for (ILoan loan : loanList_)
-    				{
-    					loanDetails = loanDetails + loan.toString();
-    				}
+            		
+            		
+            		String loanDetails = buildLoanList();
             		ui_.displayPendingLoan(loanDetails);
             		
             		
@@ -316,12 +315,32 @@ public class BorrowUC_CTL implements ICardReaderListener,
 	        }
 	    }
 	private String buildLoanListDisplay(List<ILoan> loans) {
+		System.out.println(loans.size());
 		StringBuilder bld = new StringBuilder();
 		for (ILoan ln : loans) {
 			if (bld.length() > 0) bld.append("\n\n");
 			bld.append(ln.toString());
 		}
 		return bld.toString();		
+	}
+	
+    private String buildLoanList()
+    {
+        String loanDetail = "";
+        for (ILoan loanList1: loanList_)
+        {
+            loanDetail = loanDetail + loanList1.toString();
+        }
+        return loanDetail;
+    }
+    
+	public List<ILoan> getLoanList()
+	{
+		return loanList_;
+	}
+	public int getScanCount()
+	{
+		return scanCount_;
 	}
 
 }

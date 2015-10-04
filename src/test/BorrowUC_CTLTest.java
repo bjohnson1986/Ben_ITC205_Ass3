@@ -9,6 +9,7 @@ import library.interfaces.EBorrowState;
 import library.interfaces.daos.IBookDAO;
 import library.interfaces.daos.ILoanDAO;
 import library.interfaces.daos.IMemberDAO;
+import library.interfaces.entities.EBookState;
 import library.interfaces.entities.IBook;
 import library.interfaces.entities.ILoan;
 import library.interfaces.entities.IMember;
@@ -34,11 +35,13 @@ public class BorrowUC_CTLTest {
 	private IBookDAO bookDAO_;
 	private ILoanDAO loanDAO_;
 	private IMemberDAO memberDAO_;
+	private EBookState bookState_;
 
 	private ILoan loan_;
 	private IMember member0_, member1_, member2_, member3_, member4_, member5_;
 	private IBook book0_, book1_, book2_, book3_, book4_, book5_;
 	
+	@SuppressWarnings("static-access")
 	@Before
 	public void setUp() throws Exception {
 		
@@ -83,6 +86,15 @@ public class BorrowUC_CTLTest {
         when(member0_.hasReachedFineLimit()).thenReturn(false);
         when(member0_.hasReachedLoanLimit()).thenReturn(false);
         
+        when(bookDAO_.getBookByID(0)).thenReturn(book0_);
+        when(book0_.getID()).thenReturn(0);
+        when(book0_.getAuthor()).thenReturn("Author");
+        when(book0_.getTitle()).thenReturn("Title");
+        when(book0_.getAuthor()).thenReturn("CallNumber");
+        when(book0_.getState()).thenReturn(bookState_.AVAILABLE);
+        
+        when(loanDAO_.createLoan(member0_, book0_)).thenReturn(loan_);
+        
 	}
 
 	@After
@@ -116,12 +128,50 @@ public class BorrowUC_CTLTest {
 
 	@Test
 	public final void testCardSwiped() {
-		fail("Not yet implemented");
+		BorrowUC_CTL controlClass = new BorrowUC_CTL(reader_, scanner_, printer_, display_, bookDAO_, loanDAO_, memberDAO_);
+		assertEquals(controlClass.getState(), EBorrowState.CREATED);
+		
+		controlClass.initialise();
+		assertEquals(controlClass.getState(), EBorrowState.INITIALIZED);
+		
+		controlClass.cardSwiped(0);
+		assertEquals(controlClass.getState(), EBorrowState.SCANNING_BOOKS);
 	}
 
 	@Test
 	public final void testBookScanned() {
-		fail("Not yet implemented");
+		BorrowUC_CTL controlClass = new BorrowUC_CTL(reader_, scanner_, printer_, display_, bookDAO_, loanDAO_, memberDAO_);
+		assertEquals(controlClass.getState(), EBorrowState.CREATED);
+		
+		controlClass.initialise();
+		assertEquals(controlClass.getState(), EBorrowState.INITIALIZED);
+		
+		controlClass.cardSwiped(0);
+		assertEquals(controlClass.getState(), EBorrowState.SCANNING_BOOKS);
+		
+		assertEquals(0, controlClass.getLoanList().size());
+		
+		controlClass.bookScanned(0);
+		assertEquals(1, controlClass.getScanCount());
+		assertEquals(1, controlClass.getLoanList().size());
+	}
+	
+	public final void sameBookScanned() {
+		BorrowUC_CTL controlClass = new BorrowUC_CTL(reader_, scanner_, printer_, display_, bookDAO_, loanDAO_, memberDAO_);
+		assertEquals(controlClass.getState(), EBorrowState.CREATED);
+		
+		controlClass.initialise();
+		assertEquals(controlClass.getState(), EBorrowState.INITIALIZED);
+		
+		controlClass.cardSwiped(0);
+		assertEquals(controlClass.getState(), EBorrowState.SCANNING_BOOKS);
+		
+		assertEquals(0, controlClass.getLoanList().size());
+		
+		controlClass.bookScanned(0);
+		controlClass.bookScanned(0);
+		assertEquals(1, controlClass.getScanCount());
+		assertEquals(1, controlClass.getLoanList().size());
 	}
 
 	@Test
@@ -134,21 +184,23 @@ public class BorrowUC_CTLTest {
 
 	@Test
 	public final void testScansCompleted() {
-		int memberId = 0;
 		BorrowUC_CTL controlClass = new BorrowUC_CTL(reader_, scanner_, printer_, display_, bookDAO_, loanDAO_, memberDAO_);
 		assertEquals(controlClass.getState(), EBorrowState.CREATED);
 		
 		controlClass.initialise();
 		assertEquals(controlClass.getState(), EBorrowState.INITIALIZED);
 		
-		controlClass.cardSwiped(memberId);
+		controlClass.cardSwiped(0);
+		assertEquals(controlClass.getState(), EBorrowState.SCANNING_BOOKS);
 		
-
-//        int memberID = 14;
-//        BorrowUC_CTL instance = new BorrowUC_CTL(reader, scanner, printer,
-//                display, bookDAO, loanDAO, memberDAO);
-//        instance.initialise();
-//        instance.cardSwiped(memberID);
+		assertEquals(0, controlClass.getLoanList().size());
+		
+		controlClass.bookScanned(0);
+		assertEquals(1, controlClass.getScanCount());
+		assertEquals(1, controlClass.getLoanList().size());
+		
+		controlClass.scansCompleted();
+		assertEquals(controlClass.getState(), EBorrowState.COMPLETED);	
 	}
 
 	@Test

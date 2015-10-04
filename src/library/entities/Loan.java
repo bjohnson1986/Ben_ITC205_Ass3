@@ -1,138 +1,119 @@
 package library.entities;
 
+import java.text.DateFormat;
 import java.util.Date;
 
-import library.interfaces.entities.ELoanState;
 import library.interfaces.entities.IBook;
 import library.interfaces.entities.ILoan;
 import library.interfaces.entities.IMember;
+import library.interfaces.entities.ELoanState;
 
-public class Loan implements ILoan{
-	private IBook book_;
-	private IMember borrower_;
-	@SuppressWarnings("unused")
-	private Date borrowDate_; //Seems borrowDate_ is never used.
-	private Date dueDate_;
-	private int loanId_;
-	private ELoanState eLoanState_;
+public class Loan implements ILoan {
+
+	private int id;
+	private final IMember borrower;
+	private final IBook book;
+	private Date borrowDate;
+	private Date dueDate;
+	private ELoanState state;
 	
-	public Loan(IBook book, IMember borrower, Date borrowDate, Date dueDate)
-	throws IllegalArgumentException
-	{
-		if(book == null)
-		{
-			throw new IllegalArgumentException("Error, missing book.");
+	public Loan(IBook book, IMember borrower, Date borrowDate, Date returnDate) {
+		if (!sane(book, borrower, borrowDate, returnDate)) {
+			throw new IllegalArgumentException("Loan: constructor : bad parameters");
 		}
-		if(borrower == null)
-		{
-			throw new IllegalArgumentException("Error, missing borrower.");
-		}
-		if(borrowDate == null)
-		{
-			throw new IllegalArgumentException("Error, missing borrow date.");
-		}
-		if(dueDate == null)
-		{
-			throw new IllegalArgumentException("Error, missing due date.");
-		}
-		//Check if dueDate is before borrowDate
-		if(dueDate.compareTo(borrowDate)<=0)
-		{
-			throw new IllegalArgumentException("Error, due date must be equal to, or after borrow date.");
-		}
-		//All variables are valid, construct the object.
-		if((book != null) && (borrower != null) && (borrowDate != null) && (dueDate != null) && (dueDate.compareTo(borrowDate)>0))
-		{
-			book_ = book;
-			borrower_ = borrower;
-			borrowDate_ = borrowDate;
-			dueDate_ = dueDate;
-			loanId_= 0;
-		}
+		this.book = book;
+		this.borrower = borrower;
+		this.borrowDate = borrowDate;
+		this.dueDate = returnDate;	
+		this.state = ELoanState.PENDING;
 	}
 	
-	@SuppressWarnings("static-access")
-	public void commit(int id) {
-		if (id < 0)
-		{
-			throw new IllegalArgumentException("Error, loan identification number cannot be less than zero.");			
-		}
-		if (eLoanState_ != eLoanState_.PENDING)
-		{
-			throw new RuntimeException("Error, the loan must be in a 'pending' state in order to be committed.");				
-		}
-		if ((id >= 0) && (eLoanState_ == eLoanState_.PENDING))
-		{
-			eLoanState_ = eLoanState_.CURRENT;
-			book_.borrow(this);
-			borrower_.addLoan(this);		
-		}	
+	private boolean sane(IBook book, IMember borrower, Date borrowDate, Date returnDate) {
+		return  ( book != null && 
+				  borrower != null && 
+				  borrowDate != null && 
+				  returnDate != null && 
+				  borrowDate.compareTo(returnDate) <= 0);
 	}
 
-	@SuppressWarnings("static-access")
+	@Override
+	public void commit(int loanId) {
+		if (!(state == ELoanState.PENDING)) {
+			throw new RuntimeException(
+					String.format("Loan : commit : incorrect state transition  : %s -> %s\n", 
+							state, ELoanState.CURRENT));
+		}
+		if (loanId <= 0) {
+			throw new RuntimeException(
+					String.format("Loan : commit : id must be a positive integer  : %d\n", 
+							loanId));
+		}
+		this.id = loanId;
+		state = ELoanState.CURRENT;
+		book.borrow(this);
+		borrower.addLoan(this);
+	}
+
+	@Override
 	public void complete() {
-		if((eLoanState_ == eLoanState_.CURRENT) || (eLoanState_ != eLoanState_.OVERDUE)){
-			eLoanState_ = eLoanState_.COMPLETE;
+		if (!(state == ELoanState.CURRENT || state == ELoanState.OVERDUE)) {
+			throw new RuntimeException(
+					String.format("Loan : complete : incorrect state transition  : %s -> %s\n",
+							state, ELoanState.COMPLETE));
 		}
-		else
-		{
-			throw new RuntimeException("Error, cannot complete loan if the loan is not current or overdue.");
-		}
-		
+		state = ELoanState.COMPLETE;		
 	}
 
-	@SuppressWarnings("static-access")
+	@Override
 	public boolean isOverDue() {
-		if(eLoanState_ == eLoanState_.OVERDUE)
-		{
-			return true;
-		}
-		else{
-			return false;
-		}
+		return (state == ELoanState.OVERDUE);
 	}
 
-	@SuppressWarnings("static-access")
+	@Override
 	public boolean checkOverDue(Date currentDate) {
-		if ((eLoanState_ == eLoanState_.CURRENT) || (eLoanState_ == eLoanState_.OVERDUE))
-		{
-			if(currentDate.compareTo(dueDate_)>0)
-			{
-				eLoanState_ = eLoanState_.OVERDUE;
-				return true;
-			}
-			else
-			{
-				return false;
-			}
+		if (!(state == ELoanState.CURRENT || state == ELoanState.OVERDUE )) {
+			throw new RuntimeException(
+					String.format("Loan : checkOverDue : incorrect state transition  : %s -> %s\n",
+							state, ELoanState.OVERDUE));
 		}
-		else{
-			throw new RuntimeException("Error, the loan must be in a state of current or overdue.");
+		if (currentDate.compareTo(dueDate) > 0) {
+			state = ELoanState.OVERDUE;
 		}
+		return isOverDue();
 	}
 
+	@Override
 	public IMember getBorrower() {
-		return borrower_;
+		return borrower;
 	}
 
+	@Override
 	public IBook getBook() {
-		return book_;
+		return book;
 	}
 
+	@Override
 	public int getID() {
-		return loanId_;
-	}
-
-	@SuppressWarnings("static-access")
-	public boolean isCurrent() {
-		if(eLoanState_ == eLoanState_.CURRENT)
-		{
-			return true;
-		}
-		else
-		{
-			return false;
-		}
+		return id;
 	}
 	
+	public ELoanState getState() {
+		return state;
+	}
+
+	@Override
+	public String toString() {
+		return (String.format("Loan ID:  %d\nAuthor:   %s\nTitle:    %s\nBorrower: %s %s\nBorrowed: %s\nDue Date: %s", 
+				id, book.getAuthor(), book.getTitle(), borrower.getFirstName(), borrower.getLastName(),
+				DateFormat.getDateInstance().format(borrowDate),
+				DateFormat.getDateInstance().format(dueDate)));
+	}
+
+	@Override
+	public boolean isCurrent() {
+		// TODO Auto-generated method stub
+		return false;
+	}
+
+
 }
