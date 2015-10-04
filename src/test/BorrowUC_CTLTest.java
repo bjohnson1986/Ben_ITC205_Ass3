@@ -1,6 +1,9 @@
 package test;
 
 import static org.junit.Assert.*;
+
+import java.util.List;
+
 import library.BorrowUC_CTL;
 import library.interfaces.EBorrowState;
 import library.interfaces.daos.IBookDAO;
@@ -15,6 +18,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 import stubs.CardReaderStub;
 import stubs.DisplayStub;
 import stubs.PrinterStub;
@@ -57,7 +61,8 @@ public class BorrowUC_CTLTest {
         member3_ = mock(IMember.class);
         member4_ = mock(IMember.class);
         member5_ = mock(IMember.class);
-                
+        
+        
         book0_ = mock(IBook.class);
         book1_ = mock(IBook.class);
         book2_ = mock(IBook.class);
@@ -65,7 +70,18 @@ public class BorrowUC_CTLTest {
         book4_ = mock(IBook.class);
         book5_ = mock(IBook.class);
         
+        List<ILoan> emptyLoanList = null;
+        
         //Below: Setup what the mock return when called
+        when(memberDAO_.getMemberByID(0)).thenReturn(member0_);
+        when(member0_.getFirstName()).thenReturn("Fred");
+        when(member0_.getLastName()).thenReturn("Flintstone");
+        when(member0_.getLoans()).thenReturn(emptyLoanList);
+        when(member0_.getFineAmount()).thenReturn(0.0f);
+        when(member0_.hasOverDueLoans()).thenReturn(false);
+        when(member0_.hasFinesPayable()).thenReturn(false);
+        when(member0_.hasReachedFineLimit()).thenReturn(false);
+        when(member0_.hasReachedLoanLimit()).thenReturn(false);
         
 	}
 
@@ -118,7 +134,21 @@ public class BorrowUC_CTLTest {
 
 	@Test
 	public final void testScansCompleted() {
-		fail("Not yet implemented");
+		int memberId = 0;
+		BorrowUC_CTL controlClass = new BorrowUC_CTL(reader_, scanner_, printer_, display_, bookDAO_, loanDAO_, memberDAO_);
+		assertEquals(controlClass.getState(), EBorrowState.CREATED);
+		
+		controlClass.initialise();
+		assertEquals(controlClass.getState(), EBorrowState.INITIALIZED);
+		
+		controlClass.cardSwiped(memberId);
+		
+
+//        int memberID = 14;
+//        BorrowUC_CTL instance = new BorrowUC_CTL(reader, scanner, printer,
+//                display, bookDAO, loanDAO, memberDAO);
+//        instance.initialise();
+//        instance.cardSwiped(memberID);
 	}
 
 	@Test

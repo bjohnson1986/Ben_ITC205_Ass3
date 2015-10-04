@@ -47,14 +47,17 @@ public class BorrowUC_CTL implements ICardReaderListener,
 	private JPanel previous_;
 	private ConfirmLoanPanel confirmLoanPanel_;
 
-
-	public BorrowUC_CTL(ICardReader reader_, IScanner scanner_, 
+	public BorrowUC_CTL(ICardReader reader, IScanner scanner, 
 			IPrinter printer, IDisplay display_,
 			IBookDAO bookDAO, ILoanDAO loanDAO, IMemberDAO memberDAO ) {
 
-		this.reader_ = reader_;
-		this.scanner_ = scanner_;
+		this.reader_ = reader;
+		this.scanner_ = scanner;
 		this.display_ = display_;
+		this.printer_ = printer;
+        this.bookDAO_ = bookDAO;
+        this.loanDAO_ = loanDAO;
+        this.memberDAO_ = memberDAO;
 		this.reader_.setEnabled(false);
 		this.scanner_.setEnabled(false);
 		this.ui_ = new BorrowUC_UI(this);
@@ -88,31 +91,34 @@ public class BorrowUC_CTL implements ICardReaderListener,
 	public void cardSwiped(int memberID) {
 		if (borrowState_ == borrowState_.INITIALIZED)
 		{
-			memberDAO_.getMemberByID(memberID);
-			if(borrower_.hasOverDueLoans() || borrower_.hasReachedLoanLimit() || borrower_.hasFinesPayable() || borrower_.hasReachedFineLimit())
-			{
-				setState(borrowState_.BORROWING_RESTRICTED);
-				ui_.displayMemberDetails(borrower_.getID(), borrower_.getFirstName(), borrower_.getLastName());
-				List <ILoan> currentLoans = borrower_.getLoans();
-				ui_.displayExistingLoan(buildLoanListDisplay(currentLoans));
-				ui_.displayOutstandingFineMessage(borrower_.getFineAmount());
-				ui_.displayOverDueMessage();
-				ui_.displayAtLoanLimitMessage();
-				ui_.displayErrorMessage("Error, you cannot currently borrow items.");
-				 }
-			 else
-			 {
-				setState(borrowState_.SCANNING_BOOKS);
-				reader_.setEnabled(false);
-				scanner_.setEnabled(true);
-				ui_.displayMemberDetails(borrower_.getID(), borrower_.getFirstName(), borrower_.getLastName());
-				List <ILoan> currentLoans = borrower_.getLoans();
-				ui_.displayExistingLoan(buildLoanListDisplay(currentLoans));
-				ui_.displayOutstandingFineMessage(borrower_.getFineAmount());
-				reader_.setEnabled(false);
-				scanner_.setEnabled(true);			
-			 }
-			 
+				borrower_ = memberDAO_.getMemberByID(memberID);
+				if(borrower_.hasOverDueLoans() || borrower_.hasReachedLoanLimit() || borrower_.hasFinesPayable() || borrower_.hasReachedFineLimit())
+				{
+					setState(borrowState_.BORROWING_RESTRICTED);
+					ui_.displayMemberDetails(borrower_.getID(), borrower_.getFirstName(), borrower_.getLastName());
+					List <ILoan> currentLoans = borrower_.getLoans();
+					ui_.displayExistingLoan(buildLoanListDisplay(currentLoans));
+					ui_.displayOutstandingFineMessage(borrower_.getFineAmount());
+					ui_.displayOverDueMessage();
+					ui_.displayAtLoanLimitMessage();
+					ui_.displayErrorMessage("Error, you cannot currently borrow items.");
+					 }
+				 else
+				 {
+					setState(borrowState_.SCANNING_BOOKS);
+					reader_.setEnabled(false);
+					scanner_.setEnabled(true);
+					ui_.displayMemberDetails(borrower_.getID(), borrower_.getFirstName(), borrower_.getLastName());
+					List <ILoan> currentLoans = borrower_.getLoans();
+					if (currentLoans != null){
+						ui_.displayExistingLoan(buildLoanListDisplay(currentLoans));
+					}
+					if (borrower_.getFineAmount() > 0){
+						ui_.displayOutstandingFineMessage(borrower_.getFineAmount());
+					}
+					reader_.setEnabled(false);
+					scanner_.setEnabled(true);			
+				 }			 
 		}
 		else{
 			throw new RuntimeException("The system is not initialized.");		
