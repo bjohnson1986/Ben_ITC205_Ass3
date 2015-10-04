@@ -28,88 +28,79 @@ public class BorrowUC_CTL implements ICardReaderListener,
 									 IScannerListener, 
 									 IBorrowUIListener {
 	
-	private ICardReader reader;
-	private IScanner scanner; 
-	private IPrinter printer; 
-	private IDisplay display;
+	private ICardReader reader_;
+	private IScanner scanner_; 
+	private IPrinter printer_; 
+	private IDisplay display_;
 	//private String state;
-	private int scanCount = 0;
-	private IBorrowUI ui;
-	private EBorrowState borrowState; 
-	private EBookState bookState;
-	private IBookDAO bookDAO;
-	private IMemberDAO memberDAO;
-	private ILoanDAO loanDAO;
+	private int scanCount_ = 0;
+	private IBorrowUI ui_;
+	private EBorrowState borrowState_; 
+	private EBookState bookState_;
+	private IBookDAO bookDAO_;
+	private IMemberDAO memberDAO_;
+	private ILoanDAO loanDAO_;
 	
-	private List<IBook> bookList;
-	private List<ILoan> loanList;
-	private IMember borrower;
+	private List<IBook> bookList_;
+	private List<ILoan> loanList_;
+	private IMember borrower_;
 	
-	private JPanel previous;
-	private ConfirmLoanPanel confirmLoanPanel;
+	private JPanel previous_;
+	private ConfirmLoanPanel confirmLoanPanel_;
 
 
-	public BorrowUC_CTL(ICardReader reader, IScanner scanner, 
-			IPrinter printer, IDisplay display,
+	public BorrowUC_CTL(ICardReader reader_, IScanner scanner_, 
+			IPrinter printer, IDisplay display_,
 			IBookDAO bookDAO, ILoanDAO loanDAO, IMemberDAO memberDAO ) {
 
-		this.reader = reader;
-		this.scanner = scanner;
-		//this.confirmLoanPanel = confi
-		this.display = display;
-		this.ui = new BorrowUC_UI(this);
-		borrowState = EBorrowState.CREATED;
+		this.reader_ = reader_;
+		this.scanner_ = scanner_;
+		this.display_ = display_;
+		this.ui_ = new BorrowUC_UI(this);
+		borrowState_ = EBorrowState.CREATED;
 	}
 	
 	@SuppressWarnings("static-access")
 	public void initialise() {
-		previous = display.getDisplay();
-		display.setDisplay((JPanel) ui, "Borrow UI");
-		reader.addListener(this);
-		scanner.addListener(this);
-		setState(borrowState.INITIALIZED);
+		previous_ = display_.getDisplay();
+		display_.setDisplay((JPanel) ui_, "Borrow UI");
+		reader_.addListener(this);
+		scanner_.addListener(this);
+		setState(borrowState_.INITIALIZED);
 	}
 	
 	public void close() {
-		display.setDisplay(previous, "Main Menu");
+		display_.setDisplay(previous_, "Main Menu");
 	}
 
 	@SuppressWarnings("static-access")
 	@Override
 	public void cardSwiped(int memberID) {
-		if (borrowState == borrowState.INITIALIZED)
+		if (borrowState_ == borrowState_.INITIALIZED)
 		{
-			memberDAO.getMemberByID(memberID);
-			if(borrower.hasOverDueLoans() || borrower.hasReachedLoanLimit() || borrower.hasFinesPayable() || borrower.hasReachedFineLimit())
-				 {
-				 ui.displayMemberDetails(borrower.getID(), borrower.getFirstName(), borrower.getLastName());
-				 ui.displayExistingLoan("");//Need to parse loan info
-				 ui.displayOutstandingFineMessage(borrower.getFineAmount());
-				 ui.displayOverDueMessage();
-				 ui.displayAtLoanLimitMessage();
-				 ui.displayErrorMessage("");//Set error message
+			memberDAO_.getMemberByID(memberID);
+			if(borrower_.hasOverDueLoans() || borrower_.hasReachedLoanLimit() || borrower_.hasFinesPayable() || borrower_.hasReachedFineLimit())
+			{
+				setState(borrowState_.BORROWING_RESTRICTED);
+				ui_.displayMemberDetails(borrower_.getID(), borrower_.getFirstName(), borrower_.getLastName());
+				List <ILoan> currentLoans = borrower_.getLoans();
+				ui_.displayExistingLoan(buildLoanListDisplay(currentLoans));
+				ui_.displayOutstandingFineMessage(borrower_.getFineAmount());
+				ui_.displayOverDueMessage();
+				ui_.displayAtLoanLimitMessage();
+				ui_.displayErrorMessage("Error, you cannot currently borrow items.");
 				 }
 			 else
 			 {
-				setState(borrowState.SCANNING_BOOKS);
-				reader.setEnabled(true);
-				scanner.setEnabled(true);
-				ui.setState(borrowState.SCANNING_BOOKS);			 
-				ui.displayScannedBookDetails("");//Add param
-				ui.displayPendingLoan("");//Add param
-				ui.displayOutstandingFineMessage(0.0f);//Add param
-			 
-				reader.setEnabled(true);
-				scanner.setEnabled(true);
-				
-				String loanDetails = "";
-				List <ILoan> loanList = borrower.getLoans();
-				for (ILoan loan : loanList)
-				{
-					loanDetails = loanDetails + loan.toString();
-				}
-				ui.displayExistingLoan(loanDetails);
-				
+				setState(borrowState_.SCANNING_BOOKS);
+				reader_.setEnabled(false);
+				scanner_.setEnabled(true);
+				ui_.displayMemberDetails(borrower_.getID(), borrower_.getFirstName(), borrower_.getLastName());
+				List <ILoan> currentLoans = borrower_.getLoans();
+				ui_.displayExistingLoan(buildLoanListDisplay(currentLoans));
+				ui_.displayOutstandingFineMessage(borrower_.getFineAmount());
+				reader_.setEnabled(false);
+				scanner_.setEnabled(true);			
 			 }
 			 
 		}
@@ -123,42 +114,42 @@ public class BorrowUC_CTL implements ICardReaderListener,
 	@SuppressWarnings("static-access")
 	@Override
 	public void bookScanned(int barcode) {
-        if (borrowState == borrowState.SCANNING_BOOKS)
+        if (borrowState_ == borrowState_.SCANNING_BOOKS)
         {
-            IBook book = bookDAO.getBookByID(barcode);
+            IBook book = bookDAO_.getBookByID(barcode);
             if (book == null)
             {
-                ui.displayErrorMessage("The scanned item does not belong to this library.");
+                ui_.displayErrorMessage("The scanned item does not belong to this library.");
             }
             else
             {
-            	bookState = book.getState();
+            	bookState_ = book.getState();
             	int id = book.getID();
-            	boolean bookOnList = bookList.contains(book);
+            	boolean bookOnList = bookList_.contains(book);
             			
-            	if (bookState != bookState.AVAILABLE)
+            	if (bookState_ != bookState_.AVAILABLE)
             	{
-            		ui.displayErrorMessage("This item is not currently available.");
+            		ui_.displayErrorMessage("This item is not currently available.");
             	}
-            	if (!bookOnList)
+            	if (bookList_.contains(book))
             	{
-            		ui.displayErrorMessage("This item has already been scanned.");
+            		ui_.displayErrorMessage("This item has already been scanned.");
             	}
-            	if (bookState == bookState.AVAILABLE)
+            	if (bookState_ == bookState_.AVAILABLE)
             	{
-            		ILoan newLoan = loanDAO.createLoan(borrower, book);
-            		scanCount = scanCount + 1;
-            		bookList.add(book);
-            		loanList.add(newLoan);
+            		ILoan newLoan = loanDAO_.createLoan(borrower_, book);
+            		scanCount_ = scanCount_ + 1;
+            		bookList_.add(book);
+            		loanList_.add(newLoan);
             		
             		String bookDetails = book.getID() + " " + book.getTitle() + " " + book.getAuthor() + " " + book.getCallNumber();
-            		ui.displayScannedBookDetails(bookDetails);
+            		ui_.displayScannedBookDetails(bookDetails);
     				String loanDetails = "";
-    				for (ILoan loan : loanList)
+    				for (ILoan loan : loanList_)
     				{
     					loanDetails = loanDetails + loan.toString();
     				}
-            		ui.displayPendingLoan(loanDetails);
+            		ui_.displayPendingLoan(loanDetails);
             		
             		
             	}
@@ -166,31 +157,144 @@ public class BorrowUC_CTL implements ICardReaderListener,
 	}
 	}
 	
+	@SuppressWarnings("static-access")
 	private void setState(EBorrowState state) {
-		throw new RuntimeException("Not implemented yet");
+		this.borrowState_ = state;
+        this.ui_.setState(state);
+
+        
+        if(borrowState_ == borrowState_.INITIALIZED)
+        {
+            reader_.setEnabled(true);
+            scanner_.setEnabled(false);
+        }
+        else if(borrowState_ == borrowState_.SCANNING_BOOKS)
+        {
+            reader_.setEnabled(false);
+            scanner_.setEnabled(true);
+        }
+        else if(borrowState_ == borrowState_.CONFIRMING_LOANS)
+        {
+            reader_.setEnabled(false);
+            scanner_.setEnabled(false);
+        }
+        else if(borrowState_ == borrowState_.COMPLETED)
+        {
+            reader_.setEnabled(false);
+            scanner_.setEnabled(false);
+            display_.setDisplay(previous_, "");
+        }
+        else if(borrowState_ == borrowState_.BORROWING_RESTRICTED)
+        {
+            reader_.setEnabled(false);
+            scanner_.setEnabled(false);
+        }
+        else if(borrowState_ == borrowState_.CANCELLED)
+        {
+            reader_.setEnabled(false);
+            scanner_.setEnabled(false);
+            display_.setDisplay(previous_, "");
+        }
+        else
+        {
+            throw new RuntimeException("An error has occurred.");
+        }
 	}
 
+	@SuppressWarnings("static-access")
 	@Override
 	public void cancelled() {
-		//System.out.println("Flag");
-		close();
+		reader_.setEnabled(false);
+		scanner_.setEnabled(false);
+		setState(borrowState_.CANCELLED);
+		close(); //Sets display_ to previous
 	}
 	
+	@SuppressWarnings("static-access")
 	@Override
 	public void scansCompleted() {
-		throw new RuntimeException("Not implemented yet");
+        if(borrowState_ == borrowState_.SCANNING_BOOKS)
+        {
+            if (loanList_.size() > 0)
+            {
+        		reader_.setEnabled(false);
+        		scanner_.setEnabled(false);
+                setState(EBorrowState.CONFIRMING_LOANS);
+				String loanDetails = "";
+				for (ILoan loan : loanList_)
+				{
+					loanDetails = loanDetails + loan.toString();
+				}
+                ui_.displayConfirmingLoan(loanDetails);              
+            }
+            else
+            {
+                ui_.displayErrorMessage("Please scan an item, cannot process an empty loan list.");
+            }
+        }
+        else
+        {
+            throw new RuntimeException("Error, either you are not yet at the stage of completing the transaction, or you are past it.");
+        }		
 	}
 
+	@SuppressWarnings("static-access")
 	@Override
 	public void loansConfirmed() {
-		throw new RuntimeException("Not implemented yet");
+        if (borrowState_ == borrowState_.CONFIRMING_LOANS)
+        {
+            if (loanList_.size() > 0)
+            {
+            	setState(borrowState_.COMPLETED);
+        		String loanDetails = "";	
+				for (ILoan loan : loanList_)
+				{
+					loanDAO_.commitLoan(loan);
+					loanDetails = loanDetails + loan.toString();
+				}
+				printer_.print(loanDetails);
+
+				reader_.setEnabled(false);
+				scanner_.setEnabled(false);
+				display_.setDisplay((JPanel) ui_, "Previous");
+            }
+            else
+	        {
+            	throw new RuntimeException("Please scan an item, cannot process an empty loan list.");
+	        }
+        }
+        else
+        {
+            throw new RuntimeException("Error, either you are not yet at the stage of completing the transaction, or you are past it.");
+	    }
+		
 	}
 
+	@SuppressWarnings("static-access")
 	@Override
 	public void loansRejected() {
-		throw new RuntimeException("Not implemented yet");
-	}
-
+	        if (borrowState_ == borrowState_.CONFIRMING_LOANS)
+	        {
+	            if (loanList_.size() > 0)
+	            {
+	                setState(borrowState_.SCANNING_BOOKS);
+	                loanList_ = new ArrayList<>();
+	                bookList_ = new ArrayList<>();
+	                scanCount_ = 0;
+					ui_.displayMemberDetails(borrower_.getID(), borrower_.getFirstName(), borrower_.getLastName());
+					List <ILoan> currentLoans = borrower_.getLoans();
+					ui_.displayExistingLoan(buildLoanListDisplay(currentLoans));
+	            }
+	            else
+	            {
+	                throw new RuntimeException("No loans exist.");
+	            }
+	        }
+	        else
+	        {
+	            throw new RuntimeException("The borrower has not completed scanning items.");
+	        }
+	    }
 	private String buildLoanListDisplay(List<ILoan> loans) {
 		StringBuilder bld = new StringBuilder();
 		for (ILoan ln : loans) {
