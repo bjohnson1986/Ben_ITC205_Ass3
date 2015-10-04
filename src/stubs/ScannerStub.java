@@ -1,24 +1,31 @@
 package stubs;
 
-import static org.junit.Assert.*;
+import library.interfaces.hardware.IScannerListener;
 
-import org.junit.Test;
 
 public class ScannerStub {
+	private IScannerListener listener_;
+	private boolean isEnabled_;
 
-	@Test
-	public final void testSetEnabled() {
-		fail("Not yet implemented");
+	public ScannerStub() {
+		isEnabled_ = false;
 	}
-
-	@Test
-	public final void testScanner() {
-		fail("Not yet implemented");
+	
+	public IScannerListener getListener(IScannerListener listener) {
+		return this.listener_;
 	}
-
-	@Test
-	public final void testAddListener() {
-		fail("Not yet implemented");
+	
+	public void addListener(IScannerListener listener) {
+		this.listener_ = listener;	
 	}
+	
+	public boolean getEnabled() {
+		return isEnabled_;
+	}
+	
+	public void setEnabled(boolean enabler) {
+		isEnabled_ = enabler;
+	}
+	
 
 }
