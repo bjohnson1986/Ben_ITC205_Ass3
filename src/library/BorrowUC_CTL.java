@@ -93,6 +93,8 @@ public class BorrowUC_CTL implements ICardReaderListener,
 	public void cardSwiped(int memberID) {
 		if (borrowState_ == borrowState_.INITIALIZED)
 		{
+			if(memberDAO_.getMemberByID(memberID) != null)
+			{
 				borrower_ = memberDAO_.getMemberByID(memberID);
 				if(borrower_.hasOverDueLoans() || borrower_.hasReachedLoanLimit() || borrower_.hasFinesPayable() || borrower_.hasReachedFineLimit())
 				{
@@ -120,7 +122,12 @@ public class BorrowUC_CTL implements ICardReaderListener,
 					}
 					reader_.setEnabled(false);
 					scanner_.setEnabled(true);			
-				 }			 
+				 }
+			}
+			else
+			{
+				throw new RuntimeException("You are not a member.");	
+			}
 		}
 		else{
 			throw new RuntimeException("The system is not initialized.");		

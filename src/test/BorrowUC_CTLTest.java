@@ -127,6 +127,8 @@ public class BorrowUC_CTLTest {
         when(member4_.hasReachedFineLimit()).thenReturn(false);
         when(member4_.hasReachedLoanLimit()).thenReturn(true);
         
+        when(memberDAO_.getMemberByID(5)).thenReturn(null);
+        
         when(bookDAO_.getBookByID(0)).thenReturn(book0_);
         when(book0_.getID()).thenReturn(0);
         when(book0_.getAuthor()).thenReturn("Author");
@@ -345,6 +347,20 @@ public class BorrowUC_CTLTest {
 		assertEquals(controlClass.getState(), EBorrowState.INITIALIZED);
 		
 		controlClass.cardSwiped(4);
+		assertEquals(controlClass.getState(), EBorrowState.BORROWING_RESTRICTED);
+		assertEquals(0, controlClass.getScanCount());
+		assertEquals(0, controlClass.getLoanList().size());
+	}
+	
+	@Test(expected=RuntimeException.class)
+	public final void invalidCardSwiped() {
+		BorrowUC_CTL controlClass = new BorrowUC_CTL(reader_, scanner_, printer_, display_, bookDAO_, loanDAO_, memberDAO_);
+		assertEquals(controlClass.getState(), EBorrowState.CREATED);
+		
+		controlClass.initialise();
+		assertEquals(controlClass.getState(), EBorrowState.INITIALIZED);
+		
+		controlClass.cardSwiped(5);
 		assertEquals(controlClass.getState(), EBorrowState.BORROWING_RESTRICTED);
 		assertEquals(0, controlClass.getScanCount());
 		assertEquals(0, controlClass.getLoanList().size());
