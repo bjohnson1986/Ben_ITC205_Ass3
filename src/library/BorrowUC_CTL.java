@@ -68,7 +68,7 @@ public class BorrowUC_CTL implements ICardReaderListener,
 	
 	@SuppressWarnings("static-access")
 	public void initialise() {
-		if (borrowState_ == borrowState_.CREATED)
+		if ((borrowState_ == borrowState_.CREATED) || (borrowState_ == borrowState_.COMPLETED) || (borrowState_ == borrowState_.CANCELLED))
 		{
 		previous_ = display_.getDisplay();
 		display_.setDisplay((JPanel) ui_, "Borrow UI");
@@ -246,7 +246,7 @@ public class BorrowUC_CTL implements ICardReaderListener,
 	@SuppressWarnings("static-access")
 	@Override
 	public void scansCompleted() {
-        if(borrowState_ == borrowState_.SCANNING_BOOKS)
+        if((borrowState_ == borrowState_.SCANNING_BOOKS) || (borrowState_ == borrowState_.CONFIRMING_LOANS))
         {
             if (loanList_.size() > 0)
             {

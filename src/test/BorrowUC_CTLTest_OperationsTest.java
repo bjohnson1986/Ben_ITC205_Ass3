@@ -43,8 +43,8 @@ public class BorrowUC_CTLTest_OperationsTest {
 	private IBookDAO bookDAO_;
 	private ILoanDAO loanDAO_;
 	private IMemberDAO memberDAO_;
-	private IMember member0_, member1_, member2_, member3_, member4_, member5_;
-	private IBook book0_, book1_, book2_, book3_, book4_, book5_, book6_, book7_, book8_, book9_, book10_, book11_;
+	private IMember member0_, member1_, member2_, member3_, member4_, member5_, member6_;
+	private IBook book0_, book1_, book2_, book3_, book4_, book5_, book6_, book7_, book8_, book9_, book10_, book11_, book12_, book13_, book14_, book15_, book16_;
 	private Calendar cal_;
 	private EBorrowState borrowState_;
 	
@@ -71,6 +71,11 @@ public class BorrowUC_CTLTest_OperationsTest {
         book9_ = bookDAO_.addBook("author9", "title9", "9");
         book10_ = bookDAO_.addBook("author10", "title10", "10");
         book11_ = bookDAO_.addBook("author11", "title11", "11");
+        book12_ = bookDAO_.addBook("author12", "title12", "12");
+        book13_ = bookDAO_.addBook("author13", "title13", "13");
+        book14_ = bookDAO_.addBook("author14", "title14", "14");
+        book15_ = bookDAO_.addBook("author15", "title15", "15");
+        book16_ = bookDAO_.addBook("author16", "title16", "16");
         
         member0_ = memberDAO_.addMember("Fred", "Flintstone", "0412 345 679", "fred@gmail.com");
         
@@ -102,6 +107,9 @@ public class BorrowUC_CTLTest_OperationsTest {
         loanDAO_.commitLoan(loan4);
 
         member5_ = null;
+        
+        member6_ = memberDAO_.addMember("Ben", "Johnson", "0412 345 674", "ben@gmail.com");
+        
 	}
 
 	@After
@@ -349,5 +357,55 @@ public class BorrowUC_CTLTest_OperationsTest {
 		assertEquals(5, controlClass.getLoanList().size());
 		
 		assertEquals(controlClass.getState(), EBorrowState.CONFIRMING_LOANS);
+	}
+	
+	@Test
+	public final void fiveItemsOnLoan() {
+		BorrowUC_CTL controlClass = new BorrowUC_CTL(reader_, scanner_, printer_, display_, bookDAO_, loanDAO_, memberDAO_);
+		assertEquals(controlClass.getState(), EBorrowState.CREATED);
+		
+		controlClass.initialise();
+		assertEquals(controlClass.getState(), EBorrowState.INITIALIZED);
+		
+		controlClass.cardSwiped(1);
+		assertEquals(controlClass.getState(), EBorrowState.SCANNING_BOOKS);
+		
+		assertEquals(0, controlClass.getScanCount());
+		assertEquals(0, controlClass.getLoanList().size());
+		
+		controlClass.bookScanned(13);
+		assertEquals(1, controlClass.getScanCount());
+		assertEquals(1, controlClass.getLoanList().size());
+		
+		controlClass.bookScanned(14);
+		assertEquals(2, controlClass.getScanCount());
+		assertEquals(2, controlClass.getLoanList().size());
+		
+		controlClass.bookScanned(15);
+		assertEquals(3, controlClass.getScanCount());
+		assertEquals(3, controlClass.getLoanList().size());
+		
+		controlClass.bookScanned(16);
+		assertEquals(4, controlClass.getScanCount());
+		assertEquals(4, controlClass.getLoanList().size());
+		
+		controlClass.bookScanned(17);
+		assertEquals(5, controlClass.getScanCount());
+		assertEquals(5, controlClass.getLoanList().size());
+		
+		assertEquals(controlClass.getState(), EBorrowState.CONFIRMING_LOANS);
+		
+		controlClass.scansCompleted();
+		assertEquals(controlClass.getState(), EBorrowState.CONFIRMING_LOANS);		
+		
+		controlClass.loansConfirmed();
+		assertEquals(controlClass.getState(), EBorrowState.COMPLETED);	
+		
+		controlClass.initialise();
+		assertEquals(controlClass.getState(), EBorrowState.INITIALIZED);
+		
+		controlClass.cardSwiped(1);
+		assertEquals(controlClass.getState(), EBorrowState.BORROWING_RESTRICTED);
+		
 	}
 }
