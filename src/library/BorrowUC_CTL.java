@@ -263,6 +263,7 @@ public class BorrowUC_CTL implements ICardReaderListener,
             else
             {
                 ui_.displayErrorMessage("Please scan an item, cannot process an empty loan list.");
+                throw new RuntimeException("Error, please scan an item, cannot process an empty loan list.");
             }
         }
         else
