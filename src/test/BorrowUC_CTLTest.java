@@ -39,8 +39,8 @@ public class BorrowUC_CTLTest {
 	private EBookState bookState_;
 
 	private ILoan loan_;
-	private IMember member0_, member1_, member2_, member3_, member4_, member5_;
-	private IBook book0_, book1_, book2_, book3_, book4_, book5_;
+	private IMember member0_, member1_, member2_, member3_, member4_;
+	private IBook book0_, book1_, book2_, book3_, book4_, book5_, book6_;
 	
 	@SuppressWarnings("static-access")
 	@Before
@@ -64,7 +64,7 @@ public class BorrowUC_CTLTest {
         member2_ = mock(IMember.class);
         member3_ = mock(IMember.class);
         member4_ = mock(IMember.class);
-        member5_ = mock(IMember.class);
+        mock(IMember.class);
         
         
         book0_ = mock(IBook.class);
@@ -73,6 +73,7 @@ public class BorrowUC_CTLTest {
         book3_ = mock(IBook.class);
         book4_ = mock(IBook.class);
         book5_ = mock(IBook.class);
+        book6_ = mock(IBook.class);
         
         List<ILoan> emptyLoanList = new ArrayList<>();
         
@@ -135,6 +136,48 @@ public class BorrowUC_CTLTest {
         when(book0_.getTitle()).thenReturn("Title");
         when(book0_.getAuthor()).thenReturn("CallNumber");
         when(book0_.getState()).thenReturn(bookState_.AVAILABLE);
+        
+        when(bookDAO_.getBookByID(1)).thenReturn(book1_);
+        when(book1_.getID()).thenReturn(1);
+        when(book1_.getAuthor()).thenReturn("Author");
+        when(book1_.getTitle()).thenReturn("Title");
+        when(book1_.getAuthor()).thenReturn("CallNumber");
+        when(book1_.getState()).thenReturn(bookState_.AVAILABLE);
+        
+        when(bookDAO_.getBookByID(2)).thenReturn(book2_);
+        when(book2_.getID()).thenReturn(2);
+        when(book2_.getAuthor()).thenReturn("Author");
+        when(book2_.getTitle()).thenReturn("Title");
+        when(book2_.getAuthor()).thenReturn("CallNumber");
+        when(book2_.getState()).thenReturn(bookState_.AVAILABLE);
+        
+        when(bookDAO_.getBookByID(3)).thenReturn(book3_);
+        when(book3_.getID()).thenReturn(3);
+        when(book3_.getAuthor()).thenReturn("Author");
+        when(book3_.getTitle()).thenReturn("Title");
+        when(book3_.getAuthor()).thenReturn("CallNumber");
+        when(book3_.getState()).thenReturn(bookState_.AVAILABLE);
+        
+        when(bookDAO_.getBookByID(4)).thenReturn(book4_);
+        when(book4_.getID()).thenReturn(4);
+        when(book4_.getAuthor()).thenReturn("Author");
+        when(book4_.getTitle()).thenReturn("Title");
+        when(book4_.getAuthor()).thenReturn("CallNumber");
+        when(book4_.getState()).thenReturn(bookState_.AVAILABLE);
+        
+        when(bookDAO_.getBookByID(5)).thenReturn(book5_);
+        when(book5_.getID()).thenReturn(5);
+        when(book5_.getAuthor()).thenReturn("Author");
+        when(book5_.getTitle()).thenReturn("Title");
+        when(book5_.getAuthor()).thenReturn("CallNumber");
+        when(book5_.getState()).thenReturn(bookState_.AVAILABLE);
+        
+        when(bookDAO_.getBookByID(6)).thenReturn(book6_);
+        when(book6_.getID()).thenReturn(6);
+        when(book6_.getAuthor()).thenReturn("Author");
+        when(book6_.getTitle()).thenReturn("Title");
+        when(book6_.getAuthor()).thenReturn("CallNumber");
+        when(book6_.getState()).thenReturn(bookState_.ON_LOAN);
         
         when(loanDAO_.createLoan(member0_, book0_)).thenReturn(loan_);
         
@@ -364,5 +407,61 @@ public class BorrowUC_CTLTest {
 		assertEquals(controlClass.getState(), EBorrowState.BORROWING_RESTRICTED);
 		assertEquals(0, controlClass.getScanCount());
 		assertEquals(0, controlClass.getLoanList().size());
+	}
+	
+	@Test
+	public final void maxItemScanned() {
+		BorrowUC_CTL controlClass = new BorrowUC_CTL(reader_, scanner_, printer_, display_, bookDAO_, loanDAO_, memberDAO_);
+		assertEquals(controlClass.getState(), EBorrowState.CREATED);
+		
+		controlClass.initialise();
+		assertEquals(controlClass.getState(), EBorrowState.INITIALIZED);
+		
+		controlClass.cardSwiped(0);
+		assertEquals(controlClass.getState(), EBorrowState.SCANNING_BOOKS);
+		
+		assertEquals(0, controlClass.getLoanList().size());
+		
+		controlClass.bookScanned(0);
+		assertEquals(1, controlClass.getScanCount());
+		assertEquals(1, controlClass.getLoanList().size());
+		
+		controlClass.bookScanned(1);
+		assertEquals(2, controlClass.getScanCount());
+		assertEquals(2, controlClass.getLoanList().size());
+		
+		controlClass.bookScanned(2);
+		assertEquals(3, controlClass.getScanCount());
+		assertEquals(3, controlClass.getLoanList().size());
+		
+		controlClass.bookScanned(3);
+		assertEquals(4, controlClass.getScanCount());
+		assertEquals(4, controlClass.getLoanList().size());
+		
+		controlClass.bookScanned(4);
+		assertEquals(5, controlClass.getScanCount());
+		assertEquals(5, controlClass.getLoanList().size());
+		
+		assertEquals(controlClass.getState(), EBorrowState.CONFIRMING_LOANS);
+	}
+	@Test
+	public final void scanUnavailableBook() {
+		BorrowUC_CTL controlClass = new BorrowUC_CTL(reader_, scanner_, printer_, display_, bookDAO_, loanDAO_, memberDAO_);
+		assertEquals(controlClass.getState(), EBorrowState.CREATED);
+		
+		controlClass.initialise();
+		assertEquals(controlClass.getState(), EBorrowState.INITIALIZED);
+		
+		controlClass.cardSwiped(0);
+		assertEquals(controlClass.getState(), EBorrowState.SCANNING_BOOKS);
+		
+		assertEquals(0, controlClass.getScanCount());
+		assertEquals(0, controlClass.getLoanList().size());
+		
+		controlClass.bookScanned(6);
+		assertEquals(0, controlClass.getScanCount());
+		assertEquals(0, controlClass.getLoanList().size());
+		
+		assertEquals(controlClass.getState(), EBorrowState.SCANNING_BOOKS);
 	}
 }

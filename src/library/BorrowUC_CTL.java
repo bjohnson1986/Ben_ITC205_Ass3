@@ -159,10 +159,19 @@ public class BorrowUC_CTL implements ICardReaderListener,
             	{
             		ui_.displayErrorMessage("This item has already been scanned.");
             	}
-            	if ((bookState_ == bookState_.AVAILABLE) && (!bookList_.contains(book)))
+            	if (scanCount_ == 5)
+            	{
+            		ui_.displayErrorMessage("You have already scanned five books.");
+            	}
+            	if ((bookState_ == bookState_.AVAILABLE) && (!bookList_.contains(book)) && (scanCount_ < 5))
             	{
             		ILoan newLoan = loanDAO_.createLoan(borrower_, book);
             		scanCount_ = scanCount_ + 1;
+            		if (scanCount_ == 5)
+            		{
+            			borrowState_ = borrowState_.CONFIRMING_LOANS;
+            		}
+            		
             		bookList_.add(book);
             		loanList_.add(newLoan);
             		
@@ -171,9 +180,7 @@ public class BorrowUC_CTL implements ICardReaderListener,
             		
             		
             		String loanDetails = buildLoanList(loanList_);
-            		ui_.displayPendingLoan(loanDetails);
-            		
-            		
+            		ui_.displayPendingLoan(loanDetails);		
             	}
             }
 	}
