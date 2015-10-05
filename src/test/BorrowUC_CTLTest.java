@@ -117,6 +117,16 @@ public class BorrowUC_CTLTest {
         when(member3_.hasReachedFineLimit()).thenReturn(true);
         when(member3_.hasReachedLoanLimit()).thenReturn(false);
         
+        when(memberDAO_.getMemberByID(4)).thenReturn(member4_);
+        when(member4_.getFirstName()).thenReturn("Peter");
+        when(member4_.getLastName()).thenReturn("Griffin");
+        when(member4_.getLoans()).thenReturn(emptyLoanList);
+        when(member4_.getFineAmount()).thenReturn(0.0f);
+        when(member4_.hasOverDueLoans()).thenReturn(false);
+        when(member4_.hasFinesPayable()).thenReturn(false);
+        when(member4_.hasReachedFineLimit()).thenReturn(false);
+        when(member4_.hasReachedLoanLimit()).thenReturn(true);
+        
         when(bookDAO_.getBookByID(0)).thenReturn(book0_);
         when(book0_.getID()).thenReturn(0);
         when(book0_.getAuthor()).thenReturn("Author");
@@ -321,6 +331,20 @@ public class BorrowUC_CTLTest {
 		assertEquals(controlClass.getState(), EBorrowState.INITIALIZED);
 		
 		controlClass.cardSwiped(3);
+		assertEquals(controlClass.getState(), EBorrowState.BORROWING_RESTRICTED);
+		assertEquals(0, controlClass.getScanCount());
+		assertEquals(0, controlClass.getLoanList().size());
+	}
+	
+	@Test
+	public final void reachedLoanLimit() {
+		BorrowUC_CTL controlClass = new BorrowUC_CTL(reader_, scanner_, printer_, display_, bookDAO_, loanDAO_, memberDAO_);
+		assertEquals(controlClass.getState(), EBorrowState.CREATED);
+		
+		controlClass.initialise();
+		assertEquals(controlClass.getState(), EBorrowState.INITIALIZED);
+		
+		controlClass.cardSwiped(4);
 		assertEquals(controlClass.getState(), EBorrowState.BORROWING_RESTRICTED);
 		assertEquals(0, controlClass.getScanCount());
 		assertEquals(0, controlClass.getLoanList().size());
