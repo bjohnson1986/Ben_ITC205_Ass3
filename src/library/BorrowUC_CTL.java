@@ -239,7 +239,7 @@ public class BorrowUC_CTL implements ICardReaderListener,
 	public void cancelled() {
 		reader_.setEnabled(false);
 		scanner_.setEnabled(false);
-		setState(borrowState_.CANCELLED);
+		borrowState_ = borrowState_.CANCELLED;
 		close(); //Sets display_ to previous
 	}
 	

@@ -251,6 +251,7 @@ public class BorrowUC_CTLTest {
 		assertEquals(1, controlClass.getLoanList().size());
 	}
 	
+	@Test
 	public final void sameBookScanned() {
 		BorrowUC_CTL controlClass = new BorrowUC_CTL(reader_, scanner_, printer_, display_, bookDAO_, loanDAO_, memberDAO_);
 		assertEquals(controlClass.getState(), EBorrowState.CREATED);
@@ -268,6 +269,9 @@ public class BorrowUC_CTLTest {
 		assertEquals(0, controlClass.getLoanList().size());
 		
 		controlClass.bookScanned(0);
+		assertEquals(1, controlClass.getScanCount());
+		assertEquals(1, controlClass.getLoanList().size());
+		
 		controlClass.bookScanned(0);
 		assertEquals(1, controlClass.getScanCount());
 		assertEquals(1, controlClass.getLoanList().size());
