@@ -145,6 +145,7 @@ public class BorrowUC_CTL implements ICardReaderListener,
             if (book == null)
             {
                 ui_.displayErrorMessage("The scanned item does not belong to this library.");
+                throw new RuntimeException("The scanned item does not belong to this library.");
             }
             else
             {

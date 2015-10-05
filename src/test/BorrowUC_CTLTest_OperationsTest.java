@@ -1,11 +1,7 @@
 package test;
 
-import static org.junit.Assert.*;
-import static org.mockito.Mockito.mock;
-
 import java.util.Calendar;
 import java.util.Date;
-import java.util.List;
 
 import library.BorrowUC_CTL;
 import library.daos.BookHelper;
@@ -14,19 +10,17 @@ import library.daos.LoanHelper;
 import library.daos.LoanMapDAO;
 import library.daos.MemberHelper;
 import library.daos.MemberMapDAO;
-import library.entities.Member;
 import library.hardware.CardReader;
-import library.hardware.Display;
 import library.hardware.Printer;
 import library.hardware.Scanner;
 import library.interfaces.EBorrowState;
 import library.interfaces.daos.IBookDAO;
 import library.interfaces.daos.ILoanDAO;
 import library.interfaces.daos.IMemberDAO;
-import library.interfaces.entities.EBookState;
 import library.interfaces.entities.IBook;
 import library.interfaces.entities.ILoan;
 import library.interfaces.entities.IMember;
+import static org.junit.Assert.*;
 
 import org.junit.After;
 import org.junit.Before;
@@ -43,7 +37,9 @@ public class BorrowUC_CTLTest_OperationsTest {
 	private IBookDAO bookDAO_;
 	private ILoanDAO loanDAO_;
 	private IMemberDAO memberDAO_;
+	@SuppressWarnings("unused")
 	private IMember member0_, member1_, member2_, member3_, member4_, member5_, member6_;
+	@SuppressWarnings("unused")
 	private IBook book0_, book1_, book2_, book3_, book4_, book5_, book6_, book7_, book8_, book9_, book10_, book11_, book12_, book13_, book14_, book15_, book16_;
 	private Calendar cal_;
 	private EBorrowState borrowState_;
@@ -301,6 +297,29 @@ public class BorrowUC_CTLTest_OperationsTest {
 		assertEquals(0, controlClass.getLoanList().size());
 	}
 	
+	@Test(expected=RuntimeException.class)
+	public final void nonMember() {
+		BorrowUC_CTL controlClass = new BorrowUC_CTL(reader_, scanner_, printer_, display_, bookDAO_, loanDAO_, memberDAO_);
+		assertEquals(controlClass.getState(), EBorrowState.CREATED);
+		
+		controlClass.initialise();
+		assertEquals(controlClass.getState(), EBorrowState.INITIALIZED);
+		
+		controlClass.cardSwiped(15);
+	}
+	
+	@Test(expected=RuntimeException.class)
+	public final void bookDoesntExist() {
+		BorrowUC_CTL controlClass = new BorrowUC_CTL(reader_, scanner_, printer_, display_, bookDAO_, loanDAO_, memberDAO_);
+		assertEquals(controlClass.getState(), EBorrowState.CREATED);
+		
+		controlClass.initialise();
+		assertEquals(controlClass.getState(), EBorrowState.INITIALIZED);
+		
+		controlClass.cardSwiped(1);
+		controlClass.bookScanned(100);
+	}
+	
 	@Test
 	public final void scanUnavailableBook() {
 		BorrowUC_CTL controlClass = new BorrowUC_CTL(reader_, scanner_, printer_, display_, bookDAO_, loanDAO_, memberDAO_);
@@ -406,6 +425,92 @@ public class BorrowUC_CTLTest_OperationsTest {
 		
 		controlClass.cardSwiped(1);
 		assertEquals(controlClass.getState(), EBorrowState.BORROWING_RESTRICTED);
+	}
+	
+	@Test
+	public final void scanSixBooks() {
+		BorrowUC_CTL controlClass = new BorrowUC_CTL(reader_, scanner_, printer_, display_, bookDAO_, loanDAO_, memberDAO_);
+		assertEquals(controlClass.getState(), EBorrowState.CREATED);
 		
+		controlClass.initialise();
+		assertEquals(controlClass.getState(), EBorrowState.INITIALIZED);
+		
+		controlClass.cardSwiped(1);
+		assertEquals(controlClass.getState(), EBorrowState.SCANNING_BOOKS);
+		
+		assertEquals(0, controlClass.getScanCount());
+		assertEquals(0, controlClass.getLoanList().size());
+		
+		controlClass.bookScanned(13);
+		assertEquals(1, controlClass.getScanCount());
+		assertEquals(1, controlClass.getLoanList().size());
+		
+		controlClass.bookScanned(14);
+		assertEquals(2, controlClass.getScanCount());
+		assertEquals(2, controlClass.getLoanList().size());
+		
+		controlClass.bookScanned(15);
+		assertEquals(3, controlClass.getScanCount());
+		assertEquals(3, controlClass.getLoanList().size());
+		
+		controlClass.bookScanned(16);
+		assertEquals(4, controlClass.getScanCount());
+		assertEquals(4, controlClass.getLoanList().size());
+		
+		controlClass.bookScanned(17);
+		assertEquals(5, controlClass.getScanCount());
+		assertEquals(5, controlClass.getLoanList().size());
+		
+		assertEquals(controlClass.getState(), EBorrowState.CONFIRMING_LOANS);
+		
+		controlClass.bookScanned(12);
+		assertEquals(5, controlClass.getScanCount());
+		assertEquals(5, controlClass.getLoanList().size());
+	}
+	
+	@Test(expected=RuntimeException.class)
+	public final void swipeCardBeforeInitialize() {
+		BorrowUC_CTL controlClass = new BorrowUC_CTL(reader_, scanner_, printer_, display_, bookDAO_, loanDAO_, memberDAO_);
+		assertEquals(controlClass.getState(), EBorrowState.CREATED);
+			
+		controlClass.cardSwiped(1);			
+	}
+	
+	@Test(expected=RuntimeException.class)
+	public final void confirmLoanBeforeScanComplete() {
+		BorrowUC_CTL controlClass = new BorrowUC_CTL(reader_, scanner_, printer_, display_, bookDAO_, loanDAO_, memberDAO_);
+		assertEquals(controlClass.getState(), EBorrowState.CREATED);
+		
+		controlClass.initialise();
+		assertEquals(controlClass.getState(), EBorrowState.INITIALIZED);
+		
+		controlClass.cardSwiped(1);
+		assertEquals(controlClass.getState(), EBorrowState.SCANNING_BOOKS);
+		
+		assertEquals(0, controlClass.getScanCount());
+		assertEquals(0, controlClass.getLoanList().size());
+		
+		controlClass.bookScanned(12);
+		assertEquals(1, controlClass.getScanCount());
+		assertEquals(1, controlClass.getLoanList().size());
+		
+		controlClass.loansConfirmed();
+	}
+	
+	@Test(expected=RuntimeException.class)
+	public final void confirmLoanScanCompleteBeforeItemScanned() {
+		BorrowUC_CTL controlClass = new BorrowUC_CTL(reader_, scanner_, printer_, display_, bookDAO_, loanDAO_, memberDAO_);
+		assertEquals(controlClass.getState(), EBorrowState.CREATED);
+		
+		controlClass.initialise();
+		assertEquals(controlClass.getState(), EBorrowState.INITIALIZED);
+		
+		controlClass.cardSwiped(1);
+		assertEquals(controlClass.getState(), EBorrowState.SCANNING_BOOKS);
+		
+		assertEquals(0, controlClass.getScanCount());
+		assertEquals(0, controlClass.getLoanList().size());
+		
+		controlClass.scansCompleted();
 	}
 }
