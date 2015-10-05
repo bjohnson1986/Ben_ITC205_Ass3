@@ -329,7 +329,6 @@ public class BorrowUC_CTL implements ICardReaderListener,
 	        }
 	    }
 	private String buildLoanListDisplay(List<ILoan> loans) {
-		System.out.println(loans.size());
 		StringBuilder bld = new StringBuilder();
 		for (ILoan ln : loans) {
 			if (bld.length() > 0) bld.append("\n\n");
